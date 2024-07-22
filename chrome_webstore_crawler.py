@@ -209,6 +209,9 @@ def main():
 				if "&hl=" not in url: # Ignore all URLs with a "&hl=..." language specifier!
 					urls.append(url)
 		print(f"Collected {len(urls)} URLs from sitemap.xml.")
+		# Remove duplicates:
+		urls = list(set(urls))
+		print(f"  => {len(urls)} URLs left after removing duplicates.")
 		# Shuffle URLs:
 		random.shuffle(urls)
 		print(f"Shuffled URLs, beginning with '{urls[0]}' ...")
@@ -241,6 +244,9 @@ def main():
 					extension_url = xml_el.attrib["href"] # e.g. "https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef"
 					extension_urls.append(extension_url)
 			print(f"Collected {len(extension_urls)} extension URLs from '{url}'")
+			# Remove duplicates:
+			extension_urls = list(set(extension_urls))
+			print(f"  => {len(extension_urls)} extension URLs left after removing duplicates.")
 			# Shuffle extension URLs:
 			random.shuffle(extension_urls)
 			print(f"Shuffled extension URLs, beginning with '{extension_urls[0]}' ...")

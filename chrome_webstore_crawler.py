@@ -2,21 +2,109 @@ import argparse
 from pathlib import Path
 import urllib.request
 import shutil
+import xml.etree.ElementTree as ET
+import random
+import tempfile
+import time
+
+
+
+class ChromeExtension:
+	def __init__(self, extension_id, title="", description="", no_of_users=0, no_of_ratings=0, avg_rating=0.0, version_no="", size="", last_updated="", no_of_languages=0):
+		self.extension_id = extension_id
+		self.title = title
+		self.description = description
+		self.no_of_users = no_of_users
+		self.no_of_ratings = no_of_ratings
+		self.avg_rating = avg_rating
+		self.version_no = version_no
+		self.size = size
+		self.last_updated = last_updated
+		self.no_of_languages = no_of_languages
+
+	def download_info_from_url(self, extension_url=None):
+		if extension_url is None:
+			extension_url = "https://chrome.google.com/webstore/detail/" + self.extension_id
+		print(f"Getting info about extension with ID {self.extension_id} from URL: {extension_url}")
+		pass # ToDo!
+
+	def download_crx_to(self, crx_dest_folder):
+		print(f"Downloading .CRX of extension with ID {self.extension_id} into folder '{crx_dest_folder}' ...")
+		pass # ToDo!
+
+	def already_listed_in_extensions_csv(self, extensions_csv):
+		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
+		return ext_csv.contains(self)
+
+	def add_to_extensions_csv(self, extensions_csv):
+		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
+		return ext_csv.add(self)
+
+	def from_extensions_csv(extensions_csv):
+		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
+		return ext_csv.read()
+
+
+
+class ExtensionsCSV:
+	def __init__(self, path):
+		self.path = Path(path) # default: "./extensions.csv"
+		if not self.path.is_file():
+			# Create file:
+			open(self.path, 'a').close() # https://stackoverflow.com/questions/12654772/create-empty-file-using-python
+
+	def read(self):
+		return [] # ToDo!
+
+	def contains(self, extension: ChromeExtension):
+		return False # ToDo!
+
+	def add(self, extension: ChromeExtension):
+		return False # ToDo!
+
+	# (1.) plot cumulative distribution function of extension size in KB => important as larger extensions are generally harder to analyze
+	# (2.) plot cumulative distribution function of time since last update in months => might show that there are many abandoned extensions out there
+	# (3.) plot cumulative distribution function of no. of users => might show that most extensions in the store are rarely downloaded
+	# (4.) plot cumulative distribution function of no. of users as percentage of sum of *all* users => might show that there are many users of small extensions
+	# (5.) plot correlation between no. of users and time since last update in months (scatter plot) => how frequently are abandoned extensions used by users?
+	# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
+
+	def plot_cum_distr_ext_size(self): # (1.)
+		pass # ToDo!
+
+	def plot_cum_distr_time_since_last_update(self): # (2.)
+		pass # ToDo!
+
+	def plot_cum_distr_no_of_users(self): # (3.)
+		pass # ToDo!
+
+	def plot_cum_distr_no_of_users_as_percentage_of_all_users(self): # (4.)
+		pass # ToDo!
+
+	def plot_corr_no_of_users_time_since_last_update(self): # (5.)
+		pass # ToDo!
+
+	def plot_corr_no_of_users_ext_size(self): # (6.)
+		pass # ToDo!
+
+
+
+def download_file(file_url, destination_file, user_agent=""):
+	# cf. https://stackoverflow.com/questions/27928470/how-can-i-download-this-xml-file-from-given-url
+	headers = {} if user_agent == "" else {'User-Agent': user_agent}
+	
+	request = urllib.request.Request(file_url, headers=headers)
+	response = urllib.request.urlopen(request)
+	with open(destination_file, 'wb') as outfile:
+		shutil.copyfileobj(response, outfile)
 
 
 
 def download_sitemap_xml_file(sitemap_xml_file, user_agent=""):
-	# cf. https://stackoverflow.com/questions/27928470/how-can-i-download-this-xml-file-from-given-url
-	headers = {} if user_agent == "" else {'User-Agent': user_agent}
-	urlfile = "https://chrome.google.com/webstore/sitemap"
-	
-	print(f"No sitemap.xml found, downloading it from '{urlfile}'...")
+	print(f"No sitemap.xml found, downloading it from '{file_url}'...")
 
-	request = urllib.request.Request(urlfile, headers=headers)
-	response = urllib.request.urlopen(request)
-	with open(sitemap_xml_file, 'wb') as outfile:
-		shutil.copyfileobj(response, outfile)
-
+	url = "https://chrome.google.com/webstore/sitemap"
+	download_file(url=url, destination_file=sitemap_xml_file, user_agent=user_agent)
 
 
 def main():
@@ -69,14 +157,15 @@ def main():
 		""",
 		metavar='FOLDER_PATH')
 
-	parser.add_argument('--timeout',
+	parser.add_argument('--sleep',
 		type=int,
 		default=1000,
 		help="""
-		The timeout in milliseconds between processing/downloading each extension.
+		The sleep time in milliseconds between processing/downloading each extension.
+		To avoid over-burdening the servers.
 		Default: 1000
 		""",
-		metavar='TIMEOUT_IN_MILLIS')
+		metavar='SLEEP_IN_MILLIS')
 
 	parser.add_argument('--user-agent',
 		type=str,
@@ -92,8 +181,8 @@ def main():
 	if args.crawl:
 		# ##### ##### ##### ##### Step 1: ##### ##### ##### ####
 		# Download https://chrome.google.com/webstore/sitemap
-		#   and save as 'sitemap.xml' (or some other user-specified name, cf. --sitemap-xml argument) if that hasn't been done already.
-		# Read in 'sitemap.xml'.
+		#   and save as './sitemap.xml' (or some other user-specified name, cf. --sitemap-xml argument) if that hasn't been done already.
+		# Read in and parse './sitemap.xml'.
 		# ##### ##### ##### #### ##### ##### ##### ##### ####
 		sitemap_xml_file = Path(args.sitemap_xml) # default: "./sitemap.xml"
 		if not sitemap_xml_file.is_file():
@@ -101,12 +190,28 @@ def main():
 			print("sitemap.xml has been downloaded and saved.")
 		else:
 			print("sitemap.xml file found, reading it in...")
-		# Read in 'sitemap.xml':
+		# Read in './sitemap.xml':
 		sitemap_xml_content = ""
 		with open(sitemap_xml_file, 'r') as f:
 			sitemap_xml_content = f.read()
 		print("sitemap.xml has been read in.")
 		print(f"Content of sitemap.xml reads: {sitemap_xml_content[:10]} ... {sitemap_xml_content[-10:]}")
+		# Parse './sitemap.xml':
+		xml_root = ET.parse(sitemap_xml_file).getroot() # https://stackoverflow.com/questions/1912434/how-to-parse-xml-and-get-instances-of-a-particular-node-attribute
+		print(f"Parsed content of sitemap.xml: {xml_root}")
+		print(f"Collecting URLs from sitemap.xml...")
+		urls = []
+		for xml_el in xml_root.iter(): # https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.XML
+			# print(xml_el) # print(xml_el.tag) # print(xml_el.text)
+			if xml_el.tag.endswith("loc"):
+				# print(xml_el.text)
+				url = xml_el.text # e.g. "https://chrome.google.com/webstore/sitemap?shard=42"
+				if "&hl=" not in url: # Ignore all URLs with a "&hl=..." language specifier!
+					urls.append(url)
+		print(f"Collected {len(urls)} URLs from sitemap.xml.")
+		# Shuffle URLs:
+		random.shuffle(urls)
+		print(f"Shuffled URLs, beginning with '{urls[0]}' ...")
 
 		# ##### ##### ##### ##### Step 2: ##### ##### ##### ####
 		# Visit each URL listed in './sitemap.xml'.
@@ -114,10 +219,43 @@ def main():
 		#      => Visit the extension's URL and parse title, description, no. of users, no. of ratings, average rating, version no., size, last updated and no. of languages.
 		#      => Collect all of this information in the './extensions.csv' file, together with each extension's ID. Ensure (using the ID) that every extension is listed at most once!
 		#      => If the --crx-download flag is set, try to download each extension as a .CRX file as well. Should this fail, don't abort but simply skip (and display an error message!).
-		# ##### ##### ##### #### ##### ##### ##### ##### ####
-		extensions_csv_file = Path(args.csv_file) # default: "./extensions.csv"
-		if not extensions_csv_file.is_file():
-			pass # ToDo...
+		# (!!!) Note that each of the two "for each" above is done in random(!) order (!!!)
+		# ##### ##### ##### #### ##### ##### ##### ##### ####	
+		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		for i in range(len(urls)):
+			url = urls[i]
+			print(f"(#{i+1}) Downloading '{url}' ...") # e.g. "https://chrome.google.com/webstore/sitemap?shard=573"
+			dest_file = "./." + url.split("=")[-1] + ".xml" # e.g. "./.573.xml"
+			download_file(file_url=url, destination_file=dest_file, user_agent=args.user_agent)
+			print(f"Downloaded '{url}' to: {dest_file}")
+			# Parse XML:
+			xml_root = ET.parse(dest_file).getroot() # https://stackoverflow.com/questions/1912434/how-to-parse-xml-and-get-instances-of-a-particular-node-attribute
+			print(f"Parsed content of .xml file: {xml_root}")
+			print(f"Collecting extension URLs from .xml ...")
+			extension_urls = []
+			for xml_el in xml_root.iter(): # https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.XML
+				#print(xml_el.tag) # print(xml_el) # print(xml_el.tag) # print(xml_el.text)
+				# e.g. <xhtml:link href="https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef" hreflang="en-US" rel="alternate"/>
+				if xml_el.tag.endswith("link"):
+					# print("href attribute = " + xml_el.attrib["href"])
+					extension_url = xml_el.attrib["href"] # e.g. "https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef"
+					extension_urls.append(extension_url)
+			print(f"Collected {len(extension_urls)} extension URLs from '{url}'")
+			# Shuffle extension URLs:
+			random.shuffle(extension_urls)
+			print(f"Shuffled extension URLs, beginning with '{extension_urls[0]}' ...")
+			for extension_url in extension_urls: # e.g. "https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef"
+				extension_id = [url_el for url_el in extension_url.split("/") if url_el != ""][-1] # list comprehension just in case there should ever be a trailing slash "/"
+				chrome_extension = ChromeExtension(extension_id=extension_id)
+				if chrome_extension.already_listed_in_extensions_csv(extensions_csv):
+					print(f"Extension with ID {extension_id} is already in '{args.csv_file}', skipping it...")
+				else:
+					chrome_extension.download_info_from_url(extension_url=extension_url)
+					if args.crx_download != "":
+						chrome_extension.download_crx_to(crx_dest_folder=args.crx_download)
+					chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
+				# Sleep:
+				time.sleep(args.sleep / 1000)
 
 	elif args.stats:
 		# ##### ##### ##### ##### Step 3: ##### ##### ##### ####
@@ -129,7 +267,13 @@ def main():
 		# (5.) plot correlation between no. of users and time since last update in months (scatter plot) => how frequently are abandoned extensions used by users?
 		# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
 		# ##### ##### ##### #### ##### ##### ##### ##### ####
-		pass # ToDo...
+		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		extensions_csv.plot_cum_distr_ext_size() # (1.)
+		extensions_csv.plot_cum_distr_time_since_last_update() # (2.)
+		extensions_csv.plot_cum_distr_no_of_users() # (3.)
+		extensions_csv.plot_cum_distr_no_of_users_as_percentage_of_all_users() # (4.)
+		extensions_csv.plot_corr_no_of_users_time_since_last_update() # (5.)
+		extensions_csv.plot_corr_no_of_users_ext_size() # (6.)
 
 	else:
 		print(f"Argument Error: Neither --crawl nor --stats flag was specified!")

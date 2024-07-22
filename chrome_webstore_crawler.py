@@ -63,7 +63,7 @@ class ChromeExtension:
 		# (2a) Retrieve title:
 		m = re.search('<h1 class="\\w+">(.+?)</h1>', html)
 		if m:
-			self.title = m.group(1)
+			self.title = m.group(1).replace(",", "")
 		else:
 			print(f"Error: failed to extract title for extension with ID {self.extension_id}", file=sys.stderr)
 
@@ -90,7 +90,11 @@ class ChromeExtension:
 		pass # ToDo!
 
 		# (2h) Retrieve last updated:
-		pass # ToDo!
+		m = re.search('<div class="\\w+">Updated</div><div>(.+?)</div>', html) # e.g.: <div class="nws2nb">Updated</div><div>May 14, 2024</div>
+		if m:
+			self.last_updated = m.group(1).replace(",", "")
+		else:
+			print(f"Error: failed to extract date of last update for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2i) Retrieve no. of languages:
 		pass # ToDo!

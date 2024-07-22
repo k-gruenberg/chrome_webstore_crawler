@@ -46,6 +46,7 @@ def main():
 		default='./extensions.csv',
 		help="""
 		The path to the .CSV file in which the crawled data shall be stored into (--crawl) / shall be retrieved from (--stats).
+		Default: ./extensions.csv
 		""",
 		metavar='CSV_FILE')
 
@@ -55,6 +56,7 @@ def main():
 		help="""
 		The path to the "sitemap.xml" file.
 		Will be downloaded to this path automatically if the file doesn't exist yet.
+		Default: ./sitemap.xml
 		""",
 		metavar='SITEMAP_XML')
 
@@ -72,6 +74,7 @@ def main():
 		default=1000,
 		help="""
 		The timeout in milliseconds between processing/downloading each extension.
+		Default: 1000
 		""",
 		metavar='TIMEOUT_IN_MILLIS')
 

@@ -67,8 +67,13 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract title for extension with ID {self.extension_id}", file=sys.stderr)
 
-		# (2b) Retrieve description:
-		pass # ToDo!
+		# (2b) Retrieve description (or rather the first paragraph of the description):
+		# e.g.: <h2 class="wpJH0b"><div>Overview</div></h2></div><div class="RNnO5e" jscontroller="qv5bsb" jsaction="click:i7GaQb(rs1XOd);rcuQ6b:npT2md"><div jsname="ij8cu" class="JJ3H1e JpY6Fd"><p>Display equations in ChatGPT using Latex notation</p>
+		m = re.search('<h2 class="\\w+"><div>Overview</div></h2></div><div class="\\w+" jscontroller="\\w+" jsaction=".+"><div jsname="\\w+" class=".+"><p>(.+?)</p>', html)
+		if m:
+			self.description = m.group(1).replace(",", "")
+		else:
+			print(f"Error: failed to extract description for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2c) Retrieve no. of users:
 		pass # ToDo!

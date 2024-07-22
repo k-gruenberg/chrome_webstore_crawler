@@ -7,6 +7,8 @@ import random
 import tempfile
 import time
 from typing import List
+import re
+import sys
 
 
 
@@ -41,10 +43,52 @@ class ChromeExtension:
 		vals = csv_line.split(",")
 		return ChromeExtension(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9])
 
-	def download_info_from_url(self, extension_url=None):
+	def download_info_from_url(self, extension_url=None, user_agent=""):
 		if extension_url is None:
 			extension_url = "https://chrome.google.com/webstore/detail/" + self.extension_id
 		print(f"Getting info about extension with ID {self.extension_id} from URL: {extension_url}")
+
+		# (1.) Retrieve HTML source code of https://chrome.google.com/webstore/detail/xxx...xxx
+		dest_file = "./." + self.extension_id + ".html" # e.g. "./.abcdefghijklmnopqrstuvwxyzabcdef.xml"
+		download_file(file_url=extension_url, destination_file=dest_file, user_agent=user_agent)
+		html = ""
+		with open(dest_file, "r") as html_file:
+			html = html_file.read()
+		print(f"Downloaded '{extension_url}' to '{dest_file}': {html[:10]} ... {html[-10:]}")
+
+
+		# (2.) Retrieve each relevant data point:
+		# => cf. https://stackoverflow.com/questions/4666973/how-to-extract-the-substring-between-two-markers
+
+		# (2a) Retrieve title:
+		m = re.search('<h1 class=.+>(.+?)</h1>', html)
+		if m:
+			self.title = m.group(1)
+		else:
+			print(f"Error: failed to extract title for extension with ID {self.extension_id}", file=sys.stderr)
+
+		# (2b) Retrieve description:
+		pass # ToDo!
+
+		# (2c) Retrieve no. of users:
+		pass # ToDo!
+
+		# (2d) Retrieve no. of ratings:
+		pass # ToDo!
+
+		# (2e) Retrieve average rating:
+		pass # ToDo!
+
+		# (2f) Retrieve version number:
+		pass # ToDo!
+
+		# (2g) Retrieve size:
+		pass # ToDo!
+
+		# (2h) Retrieve last updated:
+		pass # ToDo!
+
+		# (2i) Retrieve no. of languages:
 		pass # ToDo!
 
 	def download_crx_to(self, crx_dest_folder):
@@ -276,7 +320,7 @@ def main():
 				if chrome_extension.already_listed_in_extensions_csv(extensions_csv):
 					print(f"Extension with ID {extension_id} is already in '{args.csv_file}', skipping it...")
 				else:
-					chrome_extension.download_info_from_url(extension_url=extension_url)
+					chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
 					if args.crx_download != "":
 						chrome_extension.download_crx_to(crx_dest_folder=args.crx_download)
 					chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)

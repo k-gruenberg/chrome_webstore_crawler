@@ -61,7 +61,7 @@ class ChromeExtension:
 		# => cf. https://stackoverflow.com/questions/4666973/how-to-extract-the-substring-between-two-markers
 
 		# (2a) Retrieve title:
-		m = re.search('<h1 class=.+>(.+?)</h1>', html)
+		m = re.search('<h1 class="\\w+">(.+?)</h1>', html)
 		if m:
 			self.title = m.group(1)
 		else:
@@ -80,7 +80,11 @@ class ChromeExtension:
 		pass # ToDo!
 
 		# (2f) Retrieve version number:
-		pass # ToDo!
+		m = re.search('<div class="\\w+">Version</div><div class="\\w+">(.+?)</div>', html)
+		if m:
+			self.version_no = m.group(1)
+		else:
+			print(f"Error: failed to extract version number for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2g) Retrieve size:
 		pass # ToDo!

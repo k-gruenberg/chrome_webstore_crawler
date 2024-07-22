@@ -87,7 +87,11 @@ class ChromeExtension:
 			print(f"Error: failed to extract version number for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2g) Retrieve size:
-		pass # ToDo!
+		m = re.search('<div class="\\w+">Size</div><div>(.+?)</div>', html)
+		if m:
+			self.size = m.group(1)
+		else:
+			print(f"Error: failed to extract size for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2h) Retrieve last updated:
 		m = re.search('<div class="\\w+">Updated</div><div>(.+?)</div>', html) # e.g.: <div class="nws2nb">Updated</div><div>May 14, 2024</div>

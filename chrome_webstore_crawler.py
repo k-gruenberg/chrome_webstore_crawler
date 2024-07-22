@@ -87,14 +87,14 @@ class ChromeExtension:
 		# (2f) Retrieve version number:
 		m = re.search('<div class="\\w+">Version</div><div class="\\w+">(.+?)</div>', html)
 		if m:
-			self.version_no = m.group(1)
+			self.version_no = m.group(1).replace(",", "")
 		else:
 			print(f"Error: failed to extract version number for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2g) Retrieve size:
 		m = re.search('<div class="\\w+">Size</div><div>(.+?)</div>', html)
 		if m:
-			self.size = m.group(1)
+			self.size = m.group(1).replace(",", "")
 		else:
 			print(f"Error: failed to extract size for extension with ID {self.extension_id}", file=sys.stderr)
 

@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 import random
 import tempfile
 import time
+from typing import List
 
 
 
@@ -21,6 +22,24 @@ class ChromeExtension:
 		self.size = size
 		self.last_updated = last_updated
 		self.no_of_languages = no_of_languages
+
+	def as_cvs_line(self):
+		return ",".join([\
+			self.extension_id,\
+			self.title,\
+			self.description,\
+			str(self.no_of_users),\
+			str(self.no_of_ratings),\
+			str(self.avg_rating),\
+			self.version_no,\
+			self.size,\
+			self.last_updated,\
+			str(self.no_of_languages),\
+		])
+
+	def from_csv_line(csv_line):
+		vals = csv_line.split(",")
+		return ChromeExtension(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9])
 
 	def download_info_from_url(self, extension_url=None):
 		if extension_url is None:
@@ -38,7 +57,7 @@ class ChromeExtension:
 
 	def add_to_extensions_csv(self, extensions_csv):
 		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
-		return ext_csv.add(self)
+		ext_csv.add(self)
 
 	def from_extensions_csv(extensions_csv):
 		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
@@ -53,14 +72,15 @@ class ExtensionsCSV:
 			# Create file:
 			open(self.path, 'a').close() # https://stackoverflow.com/questions/12654772/create-empty-file-using-python
 
-	def read(self):
-		return [] # ToDo!
+	def read(self) -> List[ChromeExtension]:
+		return [ChromeExtension.from_csv_line(csv_line) for csv_line in open(self.path, "r")]
 
 	def contains(self, extension: ChromeExtension):
-		return False # ToDo!
+		return any(extension.extension_id == ext.extension_id for ext in self.read())
 
 	def add(self, extension: ChromeExtension):
-		return False # ToDo!
+		with open(self.path, "a") as csv_file:
+			csv_file.write(extension.as_cvs_line() + "\n")
 
 	# (1.) plot cumulative distribution function of extension size in KB => important as larger extensions are generally harder to analyze
 	# (2.) plot cumulative distribution function of time since last update in months => might show that there are many abandoned extensions out there

@@ -51,7 +51,7 @@ class ChromeExtension:
 
 	def from_csv_line(csv_line):
 		vals = csv_line.split(",")
-		return ChromeExtension(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9], vals[10])
+		return ChromeExtension(vals[0], vals[1], vals[2], int(vals[3]), int(vals[4]), float(vals[5]), vals[6], vals[7], vals[8], int(vals[9]), vals[10])
 
 	def download_info_from_url(self, extension_url=None, user_agent=""):
 		if extension_url is None:
@@ -146,17 +146,13 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract date of last update for extension with ID {self.extension_id}", file=sys.stderr)
 
-	def download_crx_to(self, crx_dest_folder, user_agent=""):
+	def download_crx_to(self, crx_dest_folder, user_agent=""): # may throw urllib.error.HTTPError or AttributeError
 		print(f"Downloading .CRX of extension with ID {self.extension_id} into folder '{crx_dest_folder}' ...")
 		
 		# (1.) Visit https://www.crx4chrome.com/extensions/abcdefghijklmnopqrstuvwxyzabcdef/ and download as HTML:
 		url = "https://www.crx4chrome.com/extensions/" + self.extension_id
 		temp_dest_file = "./.crx4chrome.extensions." + self.extension_id + ".html" # e.g. "./.crx4chrome.abcdefghijklmnopqrstuvwxyzabcdef.html"
-		try: # Graceful failure if www.crx4chrome.com doesn't have that extension listed:
-			download_file(file_url=url, destination_file=temp_dest_file, user_agent=user_agent)
-		except urllib.error.HTTPError as http_err:
-			print(f"Error: failed to download extension with ID {self.extension_id} (HTTP error when visiting '{url}'): {http_err}", file=sys.stderr)
-			return 
+		download_file(file_url=url, destination_file=temp_dest_file, user_agent=user_agent)
 		html = ""
 		with open(temp_dest_file, "r") as html_file:
 			html = html_file.read()
@@ -170,8 +166,7 @@ class ChromeExtension:
 		if m:
 			url = "https://www.crx4chrome.com/crx/" + str(int(m.group(1))) # e.g. "https://www.crx4chrome.com/crx/584/" # note that the int(.) cast here solely acts as an assertion!
 		else:
-			print(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract link to download site)", file=sys.stderr)
-			return
+			raise AttributeError(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract link to download site)")
 
 		# (3.) Visit https://www.crx4chrome.com/crx/0000/ and download as HTML:
 		temp_dest_file = "./.crx4chrome.crx." + self.extension_id + ".html" # e.g. "./.crx4chrome.abcdefghijklmnopqrstuvwxyzabcdef.html"
@@ -189,13 +184,13 @@ class ChromeExtension:
 		if m:
 			url = "https://www.crx4chrome.com/go.php?p=" + m.group(1) # e.g. "https://www.crx4chrome.com/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15"
 		else:
-			print(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract download link)", file=sys.stderr)
-			return
+			raise AttributeError(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract download link)")
 
 		# (5.) Visit the download link and download the extension into the desired destination folder:
 		crx_dest_file = os.path.join(crx_dest_folder, self.extension_id + ".crx")
 		download_file(file_url=url, destination_file=crx_dest_file, user_agent=user_agent)
-		print(f"Successfully downloaded .CRX of extension with ID {self.extension_id} to: '{crx_dest_file}'")
+		#print(f"Successfully downloaded .CRX of extension with ID {self.extension_id} to: '{crx_dest_file}'") # sucess print shall be done by calling function
+		return crx_dest_file
 
 	def already_listed_in_extensions_csv(self, extensions_csv):
 		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
@@ -310,7 +305,13 @@ def main():
 		help="""
 		In this mode, there won't be any crawling. Instead, the .CSV file will be read in and statistics will be generated.
 		""")
-	# ToDo: add --download-crxs mode to download the .CRX files for all the extensions *ALREADY* listed in the extensions.csv file (!!!)
+	group1.add_argument('--download-crxs', action='store_true',
+		help="""
+		In this mode, there won't be any crawling of *new* extensions.
+		Instead, the .CRX file will be downloaded for every extension listed in the .CSV file.
+		Note that this requires also specifying the destination folder for the .CRX files using the --crx-download parameter.
+		If you only want to download the .CRX files of extensions with a certain number of users, use the --crx-download-user-threshold argument for that.
+		""")
 
 	parser.add_argument('--csv-file',
 		type=str,
@@ -471,15 +472,21 @@ def main():
 					chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
 					if args.crx_download != "":
 						if chrome_extension.no_of_users >= args.crx_download_user_threshold:
-							chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
+							try: # Graceful failure if .CRX download fails:
+								crx_file = chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
+								print(f"Download Success: Downloaded extension with ID {chrome_extension.extension_id} to: {crx_file}")
+							except urllib.error.HTTPError as http_err:
+								print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (HTTP error when visiting '{http_err.url}'): {http_err}", file=sys.stderr)
+							except AttributeError as attr_err:
+								print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (parse error): {attr_err}", file=sys.stderr)
 						else:
 							print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
 					chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
-				# Sleep:
-				time.sleep(args.sleep / 1000)
+					# Sleep:
+					time.sleep(args.sleep / 1000)
 
 	elif args.stats:
-		# ##### ##### ##### ##### Step 3: ##### ##### ##### ####
+		# ##### ##### ##### ##### Step 3: ##### ##### ##### #####
 		# Compute some statistics based on './extensions.csv':
 		# (1.) plot cumulative distribution function of extension size in KB => important as larger extensions are generally harder to analyze
 		# (2.) plot cumulative distribution function of time since last update in months => might show that there are many abandoned extensions out there
@@ -487,7 +494,7 @@ def main():
 		# (4.) plot cumulative distribution function of no. of users as percentage of sum of *all* users => might show that there are many users of small extensions
 		# (5.) plot correlation between no. of users and time since last update in months (scatter plot) => how frequently are abandoned extensions used by users?
 		# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
-		# ##### ##### ##### #### ##### ##### ##### ##### ####
+		# ##### ##### ##### ##### ##### ##### ##### ##### #####
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
 		extensions_csv.plot_cum_distr_ext_size() # (1.)
 		extensions_csv.plot_cum_distr_time_since_last_update() # (2.)
@@ -496,8 +503,42 @@ def main():
 		extensions_csv.plot_corr_no_of_users_time_since_last_update() # (5.)
 		extensions_csv.plot_corr_no_of_users_ext_size() # (6.)
 
+	elif args.download_crxs:
+		# Download the .CRX file for all extensions *ALREADY* listed in the (extensions).csv file:
+		if args.crx_download == "":
+			print(f"Argument Error: --download-crxs flag was specified but no destination folder with --crx-download!", file=sys.stderr)
+		else:
+			extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+			extensions = extensions_csv.read()
+			count_download_successful = 0
+			count_download_failed = 0
+			count_download_skipped = 0
+			for chrome_extension in extensions:
+				#print(f"{chrome_extension.no_of_users} ({type(chrome_extension.no_of_users)}) >= {args.crx_download_user_threshold} ({type(args.crx_download_user_threshold)}) ?")
+				if chrome_extension.no_of_users >= args.crx_download_user_threshold:
+					# Try download (graceful failure):
+					try:
+						crx_file = chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
+						print(f"Success: Downloaded extension with ID {chrome_extension.extension_id} to: {crx_file}")
+						count_download_successful += 1
+					except urllib.error.HTTPError as http_err:
+						print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (HTTP error when visiting '{http_err.url}'): {http_err}", file=sys.stderr)
+						count_download_failed += 1
+					except AttributeError as attr_err:
+						print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (parse error): {attr_err}", file=sys.stderr)
+						count_download_failed += 1
+					
+					# Sleep:
+					time.sleep(args.sleep / 1000)
+				else:
+					print(f"Not downloading .CRX of extension with ID {chrome_extension.extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
+					count_download_skipped += 1
+					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
+			print(f"Finished. Total no. of extensions: {len(extensions)} | Downloaded successfully: {count_download_successful} | Download failed: {count_download_failed} | Ignored (due to low user count): {count_download_skipped}")
+
+
 	else:
-		print(f"Argument Error: Neither --crawl nor --stats flag was specified!")
+		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs flag was specified!", file=sys.stderr)
 
 
 

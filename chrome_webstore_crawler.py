@@ -10,6 +10,11 @@ from typing import List
 import re
 import sys
 from collections import defaultdict
+import time
+
+
+
+# ToDo: remove temporary .xxx files
 
 
 
@@ -216,6 +221,22 @@ def download_sitemap_xml_file(sitemap_xml_file, user_agent=""):
 	download_file(url=url, destination_file=sitemap_xml_file, user_agent=user_agent)
 
 
+
+def print_progress(done, total, of_what="", suffix="", width_in_chars=50, done_char='\u2588', undone_char='\u2591'):
+	no_done_chars   = round((done/total) * width_in_chars)
+	no_undone_chars = width_in_chars - no_done_chars
+	print(f"[{done_char * no_done_chars}{undone_char * no_undone_chars}] {done} / {total} {of_what} {suffix}")
+
+
+def format_seconds_to_printable_time(no_of_seconds):
+	if no_of_seconds < 3600*24:
+		# a trick to convert seconds into HH:MM:SS format, see: https://stackoverflow.com/questions/1384406/convert-seconds-to-hhmmss-in-python
+		return time.strftime('%H:%M:%S', time.gmtime(no_of_seconds))
+	else:
+		return f"{no_of_seconds/(3600*24)} days"
+
+
+
 def main():
 	parser = argparse.ArgumentParser(
 		description="""Chrome Webstore Crawler.
@@ -334,7 +355,20 @@ def main():
 		# (!!!) Note that each of the two "for each" above is done in random(!) order (!!!)
 		# ##### ##### ##### #### ##### ##### ##### ##### ####	
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		start_time = time.time()
 		for i in range(len(urls)):
+			# Print progress info:
+			seconds_passed_so_far = int(time.time() - start_time)
+			formatted_time_passed_so_far = format_seconds_to_printable_time(seconds_passed_so_far)
+			formatted_estimated_time_remaining = ""
+			if i > 0: # (to avoid division by zero)
+				avg_no_of_seconds_spent_per_url = seconds_passed_so_far//i
+				estimated_no_of_seconds_remaining = (len(urls)-i) * avg_no_of_seconds_spent_per_url # estimated time remaining = #URLs left * avg(time/URL)
+				formatted_estimated_time_remaining = format_seconds_to_printable_time(estimated_no_of_seconds_remaining)
+			else:
+				formatted_estimated_time_remaining = "???"
+			print_progress(i, len(urls), "URLs", f"({formatted_time_passed_so_far} passed so far; estimated time remaining: {formatted_estimated_time_remaining})")
+
 			url = urls[i]
 			print(f"(#{i+1}) Downloading '{url}' ...") # e.g. "https://chrome.google.com/webstore/sitemap?shard=573"
 			dest_file = "./." + url.split("=")[-1] + ".xml" # e.g. "./.573.xml"

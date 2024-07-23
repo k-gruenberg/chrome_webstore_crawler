@@ -11,10 +11,12 @@ import re
 import sys
 from collections import defaultdict
 import time
+import os
 
 
 
-# ToDo: remove temporary .xxx files
+KEEP_TEMP_XML_FILES = False
+KEEP_TEMP_HTML_FILES = False
 
 
 
@@ -57,12 +59,15 @@ class ChromeExtension:
 		print(f"Getting info about extension with ID {self.extension_id} from URL: {extension_url}")
 
 		# (1.) Retrieve HTML source code of https://chrome.google.com/webstore/detail/xxx...xxx
-		dest_file = "./." + self.extension_id + ".html" # e.g. "./.abcdefghijklmnopqrstuvwxyzabcdef.xml"
-		download_file(file_url=extension_url, destination_file=dest_file, user_agent=user_agent)
+		temp_dest_file = "./." + self.extension_id + ".html" # e.g. "./.abcdefghijklmnopqrstuvwxyzabcdef.xml"
+		download_file(file_url=extension_url, destination_file=temp_dest_file, user_agent=user_agent)
 		html = ""
-		with open(dest_file, "r") as html_file:
+		with open(temp_dest_file, "r") as html_file:
 			html = html_file.read()
-		print(f"Downloaded '{extension_url}' to '{dest_file}': {html[:10]} ... {html[-10:]}")
+		print(f"Downloaded '{extension_url}' to '{temp_dest_file}': {html[:10]} ... {html[-10:]}")
+		# Delete downloaded .HTML file again after it has been read in:
+		if not KEEP_TEMP_HTML_FILES:
+			os.remove(temp_dest_file)
 
 
 		# (2.) Retrieve each relevant data point:
@@ -371,11 +376,11 @@ def main():
 
 			url = urls[i]
 			print(f"(#{i+1}) Downloading '{url}' ...") # e.g. "https://chrome.google.com/webstore/sitemap?shard=573"
-			dest_file = "./." + url.split("=")[-1] + ".xml" # e.g. "./.573.xml"
-			download_file(file_url=url, destination_file=dest_file, user_agent=args.user_agent)
-			print(f"Downloaded '{url}' to: {dest_file}")
+			temp_dest_file = "./." + url.split("=")[-1] + ".xml" # e.g. "./.573.xml"
+			download_file(file_url=url, destination_file=temp_dest_file, user_agent=args.user_agent)
+			print(f"Downloaded '{url}' to: {temp_dest_file}")
 			# Parse XML:
-			xml_root = ET.parse(dest_file).getroot() # https://stackoverflow.com/questions/1912434/how-to-parse-xml-and-get-instances-of-a-particular-node-attribute
+			xml_root = ET.parse(temp_dest_file).getroot() # https://stackoverflow.com/questions/1912434/how-to-parse-xml-and-get-instances-of-a-particular-node-attribute
 			print(f"Parsed content of .xml file: {xml_root}")
 			print(f"Collecting extension URLs from .xml ...")
 			extension_urls = []
@@ -388,6 +393,9 @@ def main():
 					extension_url = xml_el.attrib["href"] # e.g. "https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef"
 					extension_urls.append(extension_url)
 					extension_languages[extension_url].append(xml_el.attrib["hreflang"]) # keeps track of all languages supported by each extension
+			# Delete temporary .XML file again:
+			if not KEEP_TEMP_XML_FILES:
+				os.remove(temp_dest_file)
 			print(f"Collected {len(extension_urls)} extension URLs from '{url}'")
 			# Remove duplicates:
 			extension_urls = list(set(extension_urls))

@@ -9,11 +9,12 @@ import time
 from typing import List
 import re
 import sys
+from collections import defaultdict
 
 
 
 class ChromeExtension:
-	def __init__(self, extension_id, title="", description="", no_of_users=0, no_of_ratings=0, avg_rating=0.0, version_no="", size="", last_updated="", no_of_languages=0):
+	def __init__(self, extension_id, title="", description="", no_of_users=0, no_of_ratings=0, avg_rating=0.0, version_no="", size="", last_updated="", no_of_languages=0, languages=""):
 		self.extension_id = extension_id
 		self.title = title
 		self.description = description
@@ -24,6 +25,7 @@ class ChromeExtension:
 		self.size = size
 		self.last_updated = last_updated
 		self.no_of_languages = no_of_languages
+		self.languages = languages
 
 	def as_cvs_line(self):
 		return ",".join([\
@@ -37,11 +39,12 @@ class ChromeExtension:
 			self.size,\
 			self.last_updated,\
 			str(self.no_of_languages),\
+			self.languages\
 		])
 
 	def from_csv_line(csv_line):
 		vals = csv_line.split(",")
-		return ChromeExtension(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9])
+		return ChromeExtension(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8], vals[9], vals[10])
 
 	def download_info_from_url(self, extension_url=None, user_agent=""):
 		if extension_url is None:
@@ -104,9 +107,6 @@ class ChromeExtension:
 			self.last_updated = m.group(1).replace(",", "")
 		else:
 			print(f"Error: failed to extract date of last update for extension with ID {self.extension_id}", file=sys.stderr)
-
-		# (2i) Retrieve no. of languages:
-		pass # ToDo!
 
 	def download_crx_to(self, crx_dest_folder):
 		print(f"Downloading .CRX of extension with ID {self.extension_id} into folder '{crx_dest_folder}' ...")
@@ -317,6 +317,7 @@ def main():
 			print(f"Parsed content of .xml file: {xml_root}")
 			print(f"Collecting extension URLs from .xml ...")
 			extension_urls = []
+			extension_languages = defaultdict(list) # maps each extension URL to the list of supported languages
 			for xml_el in xml_root.iter(): # https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.XML
 				#print(xml_el.tag) # print(xml_el) # print(xml_el.tag) # print(xml_el.text)
 				# e.g. <xhtml:link href="https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef" hreflang="en-US" rel="alternate"/>
@@ -324,6 +325,7 @@ def main():
 					# print("href attribute = " + xml_el.attrib["href"])
 					extension_url = xml_el.attrib["href"] # e.g. "https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef"
 					extension_urls.append(extension_url)
+					extension_languages[extension_url].append(xml_el.attrib["hreflang"]) # keeps track of all languages supported by each extension
 			print(f"Collected {len(extension_urls)} extension URLs from '{url}'")
 			# Remove duplicates:
 			extension_urls = list(set(extension_urls))
@@ -333,7 +335,7 @@ def main():
 			print(f"Shuffled extension URLs, beginning with '{extension_urls[0]}' ...")
 			for extension_url in extension_urls: # e.g. "https://chrome.google.com/webstore/detail/extension-name-here/abcdefghijklmnopqrstuvwxyzabcdef"
 				extension_id = [url_el for url_el in extension_url.split("/") if url_el != ""][-1] # list comprehension just in case there should ever be a trailing slash "/"
-				chrome_extension = ChromeExtension(extension_id=extension_id)
+				chrome_extension = ChromeExtension(extension_id=extension_id, no_of_languages=len(extension_languages[extension_url]), languages="|".join(extension_languages[extension_url]))
 				if chrome_extension.already_listed_in_extensions_csv(extensions_csv):
 					print(f"Extension with ID {extension_id} is already in '{args.csv_file}', skipping it...")
 				else:

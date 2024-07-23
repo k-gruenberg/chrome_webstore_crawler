@@ -13,6 +13,9 @@ from collections import defaultdict
 import time
 import os
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 KEEP_TEMP_XML_FILES = False
@@ -231,8 +234,42 @@ class ExtensionsCSV:
 	# (5.) plot correlation between no. of users and time since last update in months (scatter plot) => how frequently are abandoned extensions used by users?
 	# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
 
+	"""
+	A simple example illustrating how to plot a CDF with numpy and plotplot
+	(taken from https://stackoverflow.com/questions/15408371/cumulative-distribution-plots-python):
+
+	import numpy as np
+	import matplotlib.pyplot as plt
+
+	# some fake data
+	data = np.random.randn(1000)
+	# evaluate the histogram
+	values, base = np.histogram(data, bins=40)
+	#evaluate the cumulative
+	cumulative = np.cumsum(values)
+	# plot the cumulative function
+	plt.plot(base[:-1], cumulative, c='blue')
+	#plot the survival function
+	plt.plot(base[:-1], len(data)-cumulative, c='green')
+
+	plt.show()
+	"""
+
 	def plot_cum_distr_ext_size(self): # (1.)
-		pass # ToDo!
+		print("(1.) Plotting cumulative distribution function of extension size in KB.")
+		NO_OF_BINS = 40
+		print(f"\t=> No. of bins: {NO_OF_BINS}")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extension_sizes = [parse_size(ext.size)/1000 for ext in extensions] # = [parse_size("7.59MiB")/1000, parse_size("29.56KiB")/1000, ...] = [7958.692, ...] # dividing by 1000 to turn into kilo-bytes
+		values, base = np.histogram(extension_sizes, bins=NO_OF_BINS) # values = [1,2,3,2,1] = how many extensions fall into each bin (unit = count) # base = [10, 20, 30, 40, 50] = the bins (unit = kilo-bytes)
+		print(f"\t=> Bins (unit=KB): {base[:5]} ... {base[-5:]}")
+		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
+		cumulative = np.cumsum(values) # = [1, 3, 6, 8, 9]
+		cumulative_as_percentage = [100.0*(x/cumulative[-1]) for x in cumulative] # = [11.11, 33.33, 66.66, 88.88, 100.0]
+		plt.plot(base[:-1], cumulative_as_percentage, c='blue')
+		plt.xlabel("KB")
+		plt.ylabel("%")
+		plt.show()
 
 	def plot_cum_distr_time_since_last_update(self): # (2.)
 		pass # ToDo!
@@ -276,12 +313,28 @@ def print_progress(done, total, of_what="", suffix="", width_in_chars=50, done_c
 	print(f"[{done_char * no_done_chars}{undone_char * no_undone_chars}] {done} / {total} {of_what} {suffix}")
 
 
+
 def format_seconds_to_printable_time(no_of_seconds):
 	if no_of_seconds < 3600*24:
 		# a trick to convert seconds into HH:MM:SS format, see: https://stackoverflow.com/questions/1384406/convert-seconds-to-hhmmss-in-python
 		return time.strftime('%H:%M:%S', time.gmtime(no_of_seconds))
 	else:
 		return f"{no_of_seconds/(3600*24)} days"
+
+
+
+def parse_size(size_string): # turns strings like "7.59MiB", or "29.56KiB", or "149KiB" into the number of bytes that they represent/encode
+	m = re.search('([\\d\\.]+)([a-zA-Z]+)', size_string)
+	prefix, suffix = float(m.group(1)), m.group(2)
+	match suffix:
+		case "KiB":
+			return round(1024 * prefix)
+		case "MiB":
+			return round(1024 * 1024 * prefix)
+		case "GiB":
+			return round(1024 * 1024 * 1024 * prefix)
+		case _:
+			raise ValueError(f"'{suffix}' in '{size_string}' is not a valid unit.")
 
 
 

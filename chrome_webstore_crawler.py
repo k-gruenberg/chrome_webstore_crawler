@@ -340,7 +340,16 @@ def main():
 		""",
 		metavar='FOLDER_PATH')
 
-	# ToDo: add --crx-download-user-threshold parameter to only download extensions with >X users
+	parser.add_argument('--crx-download-user-threshold',
+		type=int,
+		default=0,
+		help="""
+		Only download extensions with more than X users.
+		This parameter only has an effect if the --crx-download argument is supplied.
+		By default this parameter is set to 0 and therefore has no effect.
+		Default: 0
+		""",
+		metavar='SLEEP_IN_MILLIS')
 
 	parser.add_argument('--sleep',
 		type=int,
@@ -461,7 +470,10 @@ def main():
 				else:
 					chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
 					if args.crx_download != "":
-						chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
+						if chrome_extension.no_of_users >= args.crx_download_user_threshold:
+							chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
+						else:
+							print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
 					chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
 				# Sleep:
 				time.sleep(args.sleep / 1000)

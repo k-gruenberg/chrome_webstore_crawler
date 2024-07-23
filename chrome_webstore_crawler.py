@@ -149,6 +149,7 @@ class ChromeExtension:
 			print(f"Error: failed to extract date of last update for extension with ID {self.extension_id}", file=sys.stderr)
 
 	def download_crx_to(self, crx_dest_folder, user_agent=""): # may throw urllib.error.HTTPError or AttributeError
+		# (ToDo: be able to download .CRXs of lesser known extensions by not using www.crx4chrome.com but instead getting the .CRXs from the store directly somehow...)
 		print(f"Downloading .CRX of extension with ID {self.extension_id} into folder '{crx_dest_folder}' ...")
 		
 		# (1.) Visit https://www.crx4chrome.com/extensions/abcdefghijklmnopqrstuvwxyzabcdef/ and download as HTML:

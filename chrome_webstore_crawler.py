@@ -308,7 +308,17 @@ class ExtensionsCSV:
 		plt.show()
 
 	def plot_cum_distr_no_of_users_as_percentage_of_all_users(self): # (4.)
-		pass # ToDo!
+		print("(4.) Plotting cumulative distribution function of number of users as percentage of sum of *all* users.")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extensions.sort(key=lambda ext: ext.no_of_users) # Sort extensions by no. of users, in ascending order.
+		no_of_users = [ext.no_of_users for ext in extensions] # = [0, 1, 8, 270, 308, ...] = the no. of users for each extension
+		sum_of_all_user_counts = sum(no_of_users) # Note that this number might be rather large as some users might have *multiple* extensions installed!
+		xs = [ x for x in range(101) ] # = % of extensions
+		ys = [ 100 * sum(ext.no_of_users for ext in extensions[:int(len(extensions)*(x/100))]) / sum_of_all_user_counts for x in xs ] # = % of cumulative user count
+		plt.plot(xs, ys, c='blue')
+		plt.xlabel("% of extensions")
+		plt.ylabel("% of cumulative user count")
+		plt.show()
 
 	def plot_corr_no_of_users_time_since_last_update(self): # (5.)
 		pass # ToDo!

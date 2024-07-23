@@ -292,7 +292,20 @@ class ExtensionsCSV:
 		plt.show()
 
 	def plot_cum_distr_no_of_users(self): # (3.)
-		pass # ToDo!
+		print("(3.) Plotting cumulative distribution function of number of users.")
+		NO_OF_BINS = 40
+		print(f"\t=> No. of bins: {NO_OF_BINS}")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		no_of_users = [ext.no_of_users for ext in extensions] # = [1, 270, 308, 8, 0, ...] = the no. of users for each extension
+		values, base = np.histogram(no_of_users, bins=NO_OF_BINS) # values = [1,2,3,2,1] = how many extensions fall into each bin (unit = count) # base = [10, 20, 30, 40, 50] = the bins (no. of users)
+		print(f"\t=> Bins (values=no. of users): {base[:5]} ... {base[-5:]}")
+		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
+		cumulative = np.cumsum(values) # = [1, 3, 6, 8, 9]
+		cumulative_as_percentage = [100.0*(x/cumulative[-1]) for x in cumulative] # = [11.11, 33.33, 66.66, 88.88, 100.0]
+		plt.plot(base[:-1], cumulative_as_percentage, c='blue')
+		plt.xlabel("No. of users")
+		plt.ylabel("%")
+		plt.show()
 
 	def plot_cum_distr_no_of_users_as_percentage_of_all_users(self): # (4.)
 		pass # ToDo!

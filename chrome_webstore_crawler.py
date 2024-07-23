@@ -85,18 +85,30 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract number of users for extension with ID {self.extension_id}", file=sys.stderr)
 
-		# (2d) Retrieve no. of ratings: # ToDo: are we not accidentally scraping the rating of another (recommended) extension?!
+		# (2d) Retrieve no. of ratings:
 		# e.g.: <span class="PmmSTd">24 ratings</span>
+		#
+		# => Are we not accidentally scraping the no. of ratings of another (recommended) extension?!
+		#    => No, because they look like one of these:
+		#       <span class="GvZmud" role="img" aria-label="Average rating 4.8 out of 5 stars. 16 ratings." id="i20">
+		#       <div>Average rating 4.8 out of 5 stars. 16 ratings.</div>
+		#
 		m = re.search('<span class="\\w+">(([\\d,]+|No)?) ratings?</span>', html)
 		if m:
 			self.no_of_ratings = 0 if m.group(1) == "No" else int(m.group(1).replace(",", ""))
 		else:
 			print(f"Error: failed to extract number of ratings for extension with ID {self.extension_id}", file=sys.stderr)
 
-		# (2e) Retrieve average rating: # ToDo: are we not accidentally scraping the rating of another (recommended) extension?!
+		# (2e) Retrieve average rating:
 		# e.g.: <div class="eTD1t"><h2 class="wpJH0b Yemige"><span class="GlMWqe">4.7 out of 5<div class=
 		# e.g.: <div class="eTD1t"><h2 class="wpJH0b Yemige"><span class="GlMWqe">0 out of 5<div class=
 		# e.g.: <div class="eTD1t"><h2 class="wpJH0b Yemige"><span class="GlMWqe">5 out of 5<div class=
+		#
+		# => Are we not accidentally scraping the average rating of another (recommended) extension?!
+		#    => No, because they look like one of these:
+		#       <span class="GvZmud" role="img" aria-label="Average rating 4.8 out of 5 stars. 16 ratings." id="i20">
+		#       <div>Average rating 4.8 out of 5 stars. 16 ratings.</div>
+		#
 		m = re.search('<div class="\\w+"><h2 class=".+"><span class="\\w+">((\\d(\\.\\d)?)?) out of 5<div class=', html)
 		if m:
 			self.avg_rating = float(m.group(1))

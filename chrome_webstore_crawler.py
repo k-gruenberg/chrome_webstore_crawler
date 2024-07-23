@@ -70,7 +70,7 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract title for extension with ID {self.extension_id}", file=sys.stderr)
 
-		# (2b) Retrieve description (or rather the first paragraph of the description):
+		# (2b) Retrieve description (or rather the first paragraph of the description): # ToDo: handle case when first paragraph contains a linebreak(!!!)
 		# e.g.: <h2 class="wpJH0b"><div>Overview</div></h2></div><div class="RNnO5e" jscontroller="qv5bsb" jsaction="click:i7GaQb(rs1XOd);rcuQ6b:npT2md"><div jsname="ij8cu" class="JJ3H1e JpY6Fd"><p>Display equations in ChatGPT using Latex notation</p>
 		m = re.search('<h2 class="\\w+"><div>Overview</div></h2></div><div class="\\w+" jscontroller="\\w+" jsaction=".+"><div jsname="\\w+" class=".+"><p>(.+?)</p>', html)
 		if m:
@@ -86,7 +86,12 @@ class ChromeExtension:
 			print(f"Error: failed to extract number of users for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2d) Retrieve no. of ratings:
-		pass # ToDo!
+		# e.g.: <span class="PmmSTd">24 ratings</span>
+		m = re.search('<span class="\\w+">(([\\d,]+|No)?) ratings?</span>', html)
+		if m:
+			self.no_of_ratings = 0 if m.group(1) == "No" else int(m.group(1).replace(",", ""))
+		else:
+			print(f"Error: failed to extract number of ratings for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2e) Retrieve average rating:
 		pass # ToDo!

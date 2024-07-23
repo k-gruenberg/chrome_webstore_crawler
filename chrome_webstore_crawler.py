@@ -79,7 +79,7 @@ class ChromeExtension:
 			print(f"Error: failed to extract description for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2c) Retrieve no. of users:
-		m = re.search('>([\\d,]+?) users</div></div><div class="\\w+" jscontroller="\\w+" jsaction="', html)
+		m = re.search('>([\\d,]+?) users?</div></div><div class="\\w+" jscontroller="\\w+" jsaction="', html)
 		if m:
 			self.no_of_users = int(m.group(1).replace(",", "")) # Removing commas is important here as int("10,000") throws a ValueError, for example!
 		else:

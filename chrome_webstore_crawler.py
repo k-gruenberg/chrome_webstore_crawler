@@ -85,7 +85,7 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract number of users for extension with ID {self.extension_id}", file=sys.stderr)
 
-		# (2d) Retrieve no. of ratings:
+		# (2d) Retrieve no. of ratings: # ToDo: are we not accidentally scraping the rating of another (recommended) extension?!
 		# e.g.: <span class="PmmSTd">24 ratings</span>
 		m = re.search('<span class="\\w+">(([\\d,]+|No)?) ratings?</span>', html)
 		if m:
@@ -93,8 +93,15 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract number of ratings for extension with ID {self.extension_id}", file=sys.stderr)
 
-		# (2e) Retrieve average rating:
-		pass # ToDo!
+		# (2e) Retrieve average rating: # ToDo: are we not accidentally scraping the rating of another (recommended) extension?!
+		# e.g.: <div class="eTD1t"><h2 class="wpJH0b Yemige"><span class="GlMWqe">4.7 out of 5<div class=
+		# e.g.: <div class="eTD1t"><h2 class="wpJH0b Yemige"><span class="GlMWqe">0 out of 5<div class=
+		# e.g.: <div class="eTD1t"><h2 class="wpJH0b Yemige"><span class="GlMWqe">5 out of 5<div class=
+		m = re.search('<div class="\\w+"><h2 class=".+"><span class="\\w+">((\\d(\\.\\d)?)?) out of 5<div class=', html)
+		if m:
+			self.avg_rating = float(m.group(1))
+		else:
+			print(f"Error: failed to extract average rating for extension with ID {self.extension_id}", file=sys.stderr)
 
 		# (2f) Retrieve version number:
 		m = re.search('<div class="\\w+">Version</div><div class="\\w+">(.+?)</div>', html)

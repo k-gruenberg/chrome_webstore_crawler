@@ -59,7 +59,7 @@ class ChromeExtension:
 		print(f"Getting info about extension with ID {self.extension_id} from URL: {extension_url}")
 
 		# (1.) Retrieve HTML source code of https://chrome.google.com/webstore/detail/xxx...xxx
-		temp_dest_file = "./." + self.extension_id + ".html" # e.g. "./.abcdefghijklmnopqrstuvwxyzabcdef.xml"
+		temp_dest_file = "./." + self.extension_id + ".html" # e.g. "./.abcdefghijklmnopqrstuvwxyzabcdef.html"
 		download_file(file_url=extension_url, destination_file=temp_dest_file, user_agent=user_agent)
 		html = ""
 		with open(temp_dest_file, "r") as html_file:
@@ -146,9 +146,56 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract date of last update for extension with ID {self.extension_id}", file=sys.stderr)
 
-	def download_crx_to(self, crx_dest_folder):
+	def download_crx_to(self, crx_dest_folder, user_agent=""):
 		print(f"Downloading .CRX of extension with ID {self.extension_id} into folder '{crx_dest_folder}' ...")
-		pass # ToDo!
+		
+		# (1.) Visit https://www.crx4chrome.com/extensions/abcdefghijklmnopqrstuvwxyzabcdef/ and download as HTML:
+		url = "https://www.crx4chrome.com/extensions/" + self.extension_id
+		temp_dest_file = "./.crx4chrome.extensions." + self.extension_id + ".html" # e.g. "./.crx4chrome.abcdefghijklmnopqrstuvwxyzabcdef.html"
+		try: # Graceful failure if www.crx4chrome.com doesn't have that extension listed:
+			download_file(file_url=url, destination_file=temp_dest_file, user_agent=user_agent)
+		except urllib.error.HTTPError as http_err:
+			print(f"Error: failed to download extension with ID {self.extension_id} (HTTP error when visiting '{url}'): {http_err}", file=sys.stderr)
+			return 
+		html = ""
+		with open(temp_dest_file, "r") as html_file:
+			html = html_file.read()
+		# Delete downloaded .HTML file again after it has been read in:
+		if not KEEP_TEMP_HTML_FILES:
+			os.remove(temp_dest_file)
+
+		# (2.) Extract the the link to the download site (e.g. "https://www.crx4chrome.com/crx/584/") from this HTML:
+		#      => example: <a href="/crx/584/" title="Download Now">Download Now &gt;</a>
+		m = re.search('<a href="/crx/(\\d+?)/" title="Download Now">Download Now &gt;</a>', html)
+		if m:
+			url = "https://www.crx4chrome.com/crx/" + str(int(m.group(1))) # e.g. "https://www.crx4chrome.com/crx/584/" # note that the int(.) cast here solely acts as an assertion!
+		else:
+			print(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract link to download site)", file=sys.stderr)
+			return
+
+		# (3.) Visit https://www.crx4chrome.com/crx/0000/ and download as HTML:
+		temp_dest_file = "./.crx4chrome.crx." + self.extension_id + ".html" # e.g. "./.crx4chrome.abcdefghijklmnopqrstuvwxyzabcdef.html"
+		download_file(file_url=url, destination_file=temp_dest_file, user_agent=user_agent)
+		html = ""
+		with open(temp_dest_file, "r") as html_file:
+			html = html_file.read()
+		# Delete downloaded .HTML file again after it has been read in:
+		if not KEEP_TEMP_HTML_FILES:
+			os.remove(temp_dest_file)
+
+		# (4.) Extract the the download link from this HTML (e.g. "https://www.crx4chrome.com/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15"):
+		#      => example: <p class="app-desc">download crx from <a href="/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15" class="more" rel="nofollow" title="download crx from crx4chrome">crx4chrome</a></p>
+		m = re.search('<p class="app-desc">download crx from <a href="/go.php?p=(.+?)" class="more" rel="nofollow" title="download crx from crx4chrome">crx4chrome</a></p>', html)
+		if m:
+			url = "https://www.crx4chrome.com/go.php?p=" + m.group(1) # e.g. "https://www.crx4chrome.com/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15"
+		else:
+			print(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract download link)", file=sys.stderr)
+			return
+
+		# (5.) Visit the download link and download the extension into the desired destination folder:
+		crx_dest_file = os.path.join(crx_dest_folder, self.extension_id + ".crx")
+		download_file(file_url=url, destination_file=crx_dest_file, user_agent=user_agent)
+		print(f"Successfully downloaded .CRX of extension with ID {self.extension_id} to: '{crx_dest_file}'")
 
 	def already_listed_in_extensions_csv(self, extensions_csv):
 		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
@@ -263,6 +310,7 @@ def main():
 		help="""
 		In this mode, there won't be any crawling. Instead, the .CSV file will be read in and statistics will be generated.
 		""")
+	# ToDo: add --download-crxs mode to download the .CRX files for all the extensions *ALREADY* listed in the extensions.csv file (!!!)
 
 	parser.add_argument('--csv-file',
 		type=str,
@@ -291,6 +339,8 @@ def main():
 		No .CRX files will be downloaded if this parameter isn't specified.
 		""",
 		metavar='FOLDER_PATH')
+
+	# ToDo: add --crx-download-user-threshold parameter to only download extensions with >X users
 
 	parser.add_argument('--sleep',
 		type=int,
@@ -411,7 +461,7 @@ def main():
 				else:
 					chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
 					if args.crx_download != "":
-						chrome_extension.download_crx_to(crx_dest_folder=args.crx_download)
+						chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
 					chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
 				# Sleep:
 				time.sleep(args.sleep / 1000)

@@ -18,6 +18,8 @@ import os
 KEEP_TEMP_XML_FILES = False
 KEEP_TEMP_HTML_FILES = False
 
+# ToDo: fix question marks in regexes (they were originally supposed to make a quantifier like * or + lazy, matching as few chars as possible) (!!!)
+
 
 
 class ChromeExtension:
@@ -166,7 +168,7 @@ class ChromeExtension:
 		if m:
 			url = "https://www.crx4chrome.com/crx/" + str(int(m.group(1))) # e.g. "https://www.crx4chrome.com/crx/584/" # note that the int(.) cast here solely acts as an assertion!
 		else:
-			raise AttributeError(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract link to download site)")
+			raise AttributeError(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract link to download site from '{url}')")
 
 		# (3.) Visit https://www.crx4chrome.com/crx/0000/ and download as HTML:
 		temp_dest_file = "./.crx4chrome.crx." + self.extension_id + ".html" # e.g. "./.crx4chrome.abcdefghijklmnopqrstuvwxyzabcdef.html"
@@ -180,11 +182,11 @@ class ChromeExtension:
 
 		# (4.) Extract the the download link from this HTML (e.g. "https://www.crx4chrome.com/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15"):
 		#      => example: <p class="app-desc">download crx from <a href="/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15" class="more" rel="nofollow" title="download crx from crx4chrome">crx4chrome</a></p>
-		m = re.search('<p class="app-desc">download crx from <a href="/go.php?p=(.+?)" class="more" rel="nofollow" title="download crx from crx4chrome">crx4chrome</a></p>', html)
+		m = re.search('<p class="app-desc">download crx from <a href="/go.php\\?p=(.+?)" class="more" rel="nofollow" title="download crx from crx4chrome">crx4chrome</a></p>', html)
 		if m:
 			url = "https://www.crx4chrome.com/go.php?p=" + m.group(1) # e.g. "https://www.crx4chrome.com/go.php?p=584&i=aapbdbdomjkkjkaonfhkkikfgjllcleb&s=O37YH28UQ4xbA&l=https%3A%2F%2Ff6.crx4chrome.com%2Fcrx.php%3Fi%3Daapbdbdomjkkjkaonfhkkikfgjllcleb%26v%3D2.0.15"
 		else:
-			raise AttributeError(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract download link)")
+			raise AttributeError(f"Error: failed to download extension with ID {self.extension_id} (couldn't extract download link from '{url}')")
 
 		# (5.) Visit the download link and download the extension into the desired destination folder:
 		crx_dest_file = os.path.join(crx_dest_folder, self.extension_id + ".crx")

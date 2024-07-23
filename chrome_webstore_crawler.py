@@ -15,6 +15,7 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 
 
@@ -272,7 +273,23 @@ class ExtensionsCSV:
 		plt.show()
 
 	def plot_cum_distr_time_since_last_update(self): # (2.)
-		pass # ToDo!
+		print("(2.) Plotting cumulative distribution function of time since last update in months.")
+		NO_OF_BINS = 40
+		print(f"\t=> No. of bins: {NO_OF_BINS}")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		last_updates = [ext.last_updated for ext in extensions] # = ["August 9 2014", "May 30 2024", ...]
+		last_updates = [datetime.strptime(d, '%B %d %Y') for d in last_updates] # = [datetime.datetime(2014, 8, 9, 0, 0), ...] # cf. https://stackoverflow.com/questions/2265357/parse-date-string-and-change-format and https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
+		last_updates = [datetime.today() - d for d in last_updates] # = [datetime.timedelta(days=3636, seconds=78182, microseconds=601750), ...]
+		last_updates = [time_delta.days/30.437 for time_delta in last_updates] # On average, there are 30.437 days in each month!
+		values, base = np.histogram(last_updates, bins=NO_OF_BINS) # values = [1,2,3,2,1] = how many extensions fall into each bin (unit = count) # base = [1, 2, 3, 4, 5] = the bins (unit = months)
+		print(f"\t=> Bins (values=no. of months): {base[:5]} ... {base[-5:]}")
+		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
+		cumulative = np.cumsum(values) # = [1, 3, 6, 8, 9]
+		cumulative_as_percentage = [100.0*(x/cumulative[-1]) for x in cumulative] # = [11.11, 33.33, 66.66, 88.88, 100.0]
+		plt.plot(base[:-1], cumulative_as_percentage, c='blue')
+		plt.xlabel("No. of months since last update")
+		plt.ylabel("%")
+		plt.show()
 
 	def plot_cum_distr_no_of_users(self): # (3.)
 		pass # ToDo!

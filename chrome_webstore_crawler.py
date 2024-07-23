@@ -18,8 +18,6 @@ import os
 KEEP_TEMP_XML_FILES = False
 KEEP_TEMP_HTML_FILES = False
 
-# ToDo: fix question marks in regexes (they were originally supposed to make a quantifier like * or + lazy, matching as few chars as possible) (!!!)
-
 
 
 class ChromeExtension:
@@ -105,7 +103,7 @@ class ChromeExtension:
 		#       <span class="GvZmud" role="img" aria-label="Average rating 4.8 out of 5 stars. 16 ratings." id="i20">
 		#       <div>Average rating 4.8 out of 5 stars. 16 ratings.</div>
 		#
-		m = re.search('<span class="\\w+">(([\\d,]+|No)?) ratings?</span>', html)
+		m = re.search('<span class="\\w+">([\\d,]+|No) ratings?</span>', html)
 		if m:
 			self.no_of_ratings = 0 if m.group(1) == "No" else int(m.group(1).replace(",", ""))
 		else:
@@ -121,7 +119,7 @@ class ChromeExtension:
 		#       <span class="GvZmud" role="img" aria-label="Average rating 4.8 out of 5 stars. 16 ratings." id="i20">
 		#       <div>Average rating 4.8 out of 5 stars. 16 ratings.</div>
 		#
-		m = re.search('<div class="\\w+"><h2 class=".+"><span class="\\w+">((\\d(\\.\\d)?)?) out of 5<div class=', html)
+		m = re.search('<div class="\\w+"><h2 class=".+"><span class="\\w+">(\\d(\\.\\d)?) out of 5<div class=', html)
 		if m:
 			self.avg_rating = float(m.group(1))
 		else:

@@ -362,7 +362,7 @@ def download_file(file_url, destination_file, user_agent=""):
 def download_sitemap_xml_file(sitemap_xml_file, user_agent=""):
 	url = "https://chrome.google.com/webstore/sitemap"
 	print(f"Downloading sitemap.xml from '{url}' to '{sitemap_xml_file}' ...")
-	download_file(url=url, destination_file=sitemap_xml_file, user_agent=user_agent)
+	download_file(file_url=url, destination_file=sitemap_xml_file, user_agent=user_agent)
 
 
 

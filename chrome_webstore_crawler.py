@@ -324,6 +324,8 @@ class ExtensionsCSV:
 		plt.ylabel("% of cumulative user count")
 		plt.show()
 
+	# (ToDo: color scatter plot points according to the average user rating, e.g., green = 5.0 star rating, etc.)
+
 	def plot_corr_no_of_users_time_since_last_update(self): # (5.)
 		print("(5.) Correlation between no. of users and time since last update in months (scatter plot).")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]

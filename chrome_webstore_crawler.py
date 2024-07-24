@@ -360,9 +360,8 @@ def download_file(file_url, destination_file, user_agent=""):
 
 
 def download_sitemap_xml_file(sitemap_xml_file, user_agent=""):
-	print(f"No sitemap.xml found, downloading it from '{file_url}'...")
-
 	url = "https://chrome.google.com/webstore/sitemap"
+	print(f"Downloading sitemap.xml from '{url}' to '{sitemap_xml_file}' ...")
 	download_file(url=url, destination_file=sitemap_xml_file, user_agent=user_agent)
 
 
@@ -495,6 +494,7 @@ def main():
 		# ##### ##### ##### #### ##### ##### ##### ##### ####
 		sitemap_xml_file = Path(args.sitemap_xml) # default: "./sitemap.xml"
 		if not sitemap_xml_file.is_file():
+			print(f"No sitemap.xml found under '{args.sitemap_xml}', downloading it...")
 			download_sitemap_xml_file(sitemap_xml_file, user_agent=args.user_agent)
 			print("sitemap.xml has been downloaded and saved.")
 		else:

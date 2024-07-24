@@ -335,7 +335,14 @@ class ExtensionsCSV:
 		plt.show()
 
 	def plot_corr_no_of_users_ext_size(self): # (6.)
-		pass # ToDo!
+		print("(6.) Correlation between no. of users and extension size.")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		no_of_users = [ext.no_of_users for ext in extensions]
+		extension_size = [parse_size(ext.size)/1000 for ext in extensions] # divide by 1000 to turn bytes into KB
+		plt.scatter(no_of_users, extension_size, c='blue')
+		plt.xlabel("No. of users")
+		plt.ylabel("Extension size (KB)")
+		plt.show()
 
 
 

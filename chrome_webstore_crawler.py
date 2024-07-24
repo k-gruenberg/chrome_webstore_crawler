@@ -610,6 +610,7 @@ def main():
 		# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
 		# ##### ##### ##### ##### ##### ##### ##### ##### #####
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		print(f"Generating statistics based on {len(extensions_csv.read())} crawled extensions...")
 		extensions_csv.plot_cum_distr_ext_size() # (1.)
 		extensions_csv.plot_cum_distr_time_since_last_update() # (2.)
 		extensions_csv.plot_cum_distr_no_of_users() # (3.)

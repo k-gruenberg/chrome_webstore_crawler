@@ -2,6 +2,7 @@
 *.xml
 *.csv
 *.html
+*.png
 
 
 # Byte-compiled / optimized / DLL files

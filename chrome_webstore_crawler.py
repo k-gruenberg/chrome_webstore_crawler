@@ -211,6 +211,8 @@ class ChromeExtension:
 
 	def months_since_last_update(self):
 		date_string = self.last_updated # e.g.: "August 9 2014"
+		if date_string is None or date_string == "":
+			return None
 		last_updated_date = datetime.strptime(date_string, '%B %d %Y') # e.g.: datetime.datetime(2014, 8, 9, 0, 0) # cf. https://stackoverflow.com/questions/2265357/parse-date-string-and-change-format and https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
 		time_delta = datetime.today() - last_updated_date # e.g.: datetime.timedelta(days=3636, seconds=78182, microseconds=601750)
 		no_of_months = time_delta.days/30.437 # On average, there are 30.437 days in each month!
@@ -268,7 +270,7 @@ class ExtensionsCSV:
 		NO_OF_BINS = 40
 		print(f"\t=> No. of bins: {NO_OF_BINS}")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
-		extension_sizes = [parse_size(ext.size)/1000 for ext in extensions] # = [parse_size("7.59MiB")/1000, parse_size("29.56KiB")/1000, ...] = [7958.692, ...] # dividing by 1000 to turn into kilo-bytes
+		extension_sizes = [parse_size(ext.size)/1000 for ext in extensions if ext.size not in [None, ""]] # = [parse_size("7.59MiB")/1000, parse_size("29.56KiB")/1000, ...] = [7958.692, ...] # dividing by 1000 to turn into kilo-bytes
 		values, base = np.histogram(extension_sizes, bins=NO_OF_BINS) # values = [1,2,3,2,1] = how many extensions fall into each bin (unit = count) # base = [10, 20, 30, 40, 50] = the bins (unit = kilo-bytes)
 		print(f"\t=> Bins (unit=KB): {base[:5]} ... {base[-5:]}")
 		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
@@ -284,7 +286,7 @@ class ExtensionsCSV:
 		NO_OF_BINS = 40
 		print(f"\t=> No. of bins: {NO_OF_BINS}")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
-		last_updates = [ext.months_since_last_update() for ext in extensions]
+		last_updates = [ext.months_since_last_update() for ext in extensions if ext.months_since_last_update() is not None]
 		values, base = np.histogram(last_updates, bins=NO_OF_BINS) # values = [1,2,3,2,1] = how many extensions fall into each bin (unit = count) # base = [1, 2, 3, 4, 5] = the bins (unit = months)
 		print(f"\t=> Bins (values=no. of months): {base[:5]} ... {base[-5:]}")
 		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
@@ -329,6 +331,7 @@ class ExtensionsCSV:
 	def plot_corr_no_of_users_time_since_last_update(self): # (5.)
 		print("(5.) Correlation between no. of users and time since last update in months (scatter plot).")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extensions = [ext for ext in extensions if ext.no_of_users is not None and ext.months_since_last_update() is not None]
 		no_of_users = [ext.no_of_users for ext in extensions]
 		months_since_last_update = [ext.months_since_last_update() for ext in extensions]
 		plt.scatter(no_of_users, months_since_last_update, c='blue')
@@ -339,6 +342,7 @@ class ExtensionsCSV:
 	def plot_corr_no_of_users_ext_size(self): # (6.)
 		print("(6.) Correlation between no. of users and extension size.")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extensions = [ext for ext in extensions if ext.no_of_users is not None and ext.size not in [None, ""]]
 		no_of_users = [ext.no_of_users for ext in extensions]
 		extension_size = [parse_size(ext.size)/1000 for ext in extensions] # divide by 1000 to turn bytes into KB
 		plt.scatter(no_of_users, extension_size, c='blue')

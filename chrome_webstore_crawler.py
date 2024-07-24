@@ -587,19 +587,25 @@ def main():
 				if chrome_extension.already_listed_in_extensions_csv(extensions_csv):
 					print(f"Extension with ID {extension_id} is already in '{args.csv_file}', skipping it...")
 				else:
-					chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
-					if args.crx_download != "":
-						if chrome_extension.no_of_users >= args.crx_download_user_threshold:
-							try: # Graceful failure if .CRX download fails:
-								crx_file = chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
-								print(f"Download Success: Downloaded extension with ID {chrome_extension.extension_id} to: {crx_file}")
-							except urllib.error.HTTPError as http_err:
-								print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (HTTP error when visiting '{http_err.url}'): {http_err}", file=sys.stderr)
-							except AttributeError as attr_err:
-								print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (parse error): {attr_err}", file=sys.stderr)
+					try:
+						chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
+						if args.crx_download != "":
+							if chrome_extension.no_of_users >= args.crx_download_user_threshold:
+								try: # Graceful failure if .CRX download fails:
+									crx_file = chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
+									print(f"Download Success: Downloaded extension with ID {chrome_extension.extension_id} to: {crx_file}")
+								except urllib.error.HTTPError as http_err:
+									print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (HTTP error when visiting '{http_err.url}'): {http_err}", file=sys.stderr)
+								except AttributeError as attr_err:
+									print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (parse error): {attr_err}", file=sys.stderr)
+							else:
+								print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
+						chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
+					except urllib.error.HTTPError as http_err:
+						if http_err.code == 404:
+							print(f"Error: Visiting extension URL '{extension_url}' resulted in a 404 HTTP error, skipping this extension (it will not be added to the .CSV file).", file=sys.stderr)
 						else:
-							print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
-					chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
+							raise # re-throw any other HTTPError, e.g., a "urllib.error.HTTPError: HTTP Error 503: Service Unavailable"
 					# Sleep:
 					time.sleep(args.sleep / 1000)
 

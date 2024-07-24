@@ -209,6 +209,13 @@ class ChromeExtension:
 		ext_csv = extensions_csv if isinstance(extensions_csv, ExtensionsCSV) else ExtensionsCSV(extensions_csv)
 		return ext_csv.read()
 
+	def months_since_last_update(self):
+		date_string = self.last_updated # e.g.: "August 9 2014"
+		last_updated_date = datetime.strptime(date_string, '%B %d %Y') # e.g.: datetime.datetime(2014, 8, 9, 0, 0) # cf. https://stackoverflow.com/questions/2265357/parse-date-string-and-change-format and https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
+		time_delta = datetime.today() - last_updated_date # e.g.: datetime.timedelta(days=3636, seconds=78182, microseconds=601750)
+		no_of_months = time_delta.days/30.437 # On average, there are 30.437 days in each month!
+		return no_of_months
+
 
 
 class ExtensionsCSV:
@@ -277,10 +284,7 @@ class ExtensionsCSV:
 		NO_OF_BINS = 40
 		print(f"\t=> No. of bins: {NO_OF_BINS}")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
-		last_updates = [ext.last_updated for ext in extensions] # = ["August 9 2014", "May 30 2024", ...]
-		last_updates = [datetime.strptime(d, '%B %d %Y') for d in last_updates] # = [datetime.datetime(2014, 8, 9, 0, 0), ...] # cf. https://stackoverflow.com/questions/2265357/parse-date-string-and-change-format and https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
-		last_updates = [datetime.today() - d for d in last_updates] # = [datetime.timedelta(days=3636, seconds=78182, microseconds=601750), ...]
-		last_updates = [time_delta.days/30.437 for time_delta in last_updates] # On average, there are 30.437 days in each month!
+		last_updates = [ext.months_since_last_update() for ext in extensions]
 		values, base = np.histogram(last_updates, bins=NO_OF_BINS) # values = [1,2,3,2,1] = how many extensions fall into each bin (unit = count) # base = [1, 2, 3, 4, 5] = the bins (unit = months)
 		print(f"\t=> Bins (values=no. of months): {base[:5]} ... {base[-5:]}")
 		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
@@ -321,7 +325,14 @@ class ExtensionsCSV:
 		plt.show()
 
 	def plot_corr_no_of_users_time_since_last_update(self): # (5.)
-		pass # ToDo!
+		print("(5.) Correlation between no. of users and time since last update in months (scatter plot).")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		no_of_users = [ext.no_of_users for ext in extensions]
+		months_since_last_update = [ext.months_since_last_update() for ext in extensions]
+		plt.scatter(no_of_users, months_since_last_update, c='blue')
+		plt.xlabel("No. of users")
+		plt.ylabel("Months since last update")
+		plt.show()
 
 	def plot_corr_no_of_users_ext_size(self): # (6.)
 		pass # ToDo!

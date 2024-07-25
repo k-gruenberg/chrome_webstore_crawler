@@ -16,6 +16,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+import statistics
 
 
 
@@ -243,6 +244,8 @@ class ExtensionsCSV:
 	# (4.) plot cumulative distribution function of no. of users as percentage of sum of *all* users => might show that there are many users of small extensions
 	# (5.) plot correlation between no. of users and time since last update in months (scatter plot) => how frequently are abandoned extensions used by users?
 	# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
+	# (7.) bar plot of the {median/average} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are most extensions rarely used?
+	# (8.) bar plot of the {median/average} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are more rarely used extensions more simple/smaller?
 
 	"""
 	A simple example illustrating how to plot a CDF with numpy and plotplot
@@ -348,6 +351,41 @@ class ExtensionsCSV:
 		plt.scatter(no_of_users, extension_size, c='blue')
 		plt.xlabel("No. of users")
 		plt.ylabel("Extension size (KB)")
+		plt.show()
+
+	def plot_bars_quantiles_user_count(self, no_of_quantiles=4, compute_median=False): # (7.)
+		print(f"(7.) Bar plot of the {'median' if compute_median else 'average'} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count.")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extensions.sort(key=lambda ext: ext.no_of_users) # Sort extensions by no. of users, in ascending order.
+		size_per_quantile = len(extensions) // no_of_quantiles # = how many extensions will be in each quantile
+		quantiles = [extensions[i*size_per_quantile:(i+1)*size_per_quantile] for i in range(no_of_quantiles-1)] + [extensions[(no_of_quantiles-1)*size_per_quantile:]]
+		xs = [i+1 for i in range(no_of_quantiles)] # e.g.: [1,2,3,4]
+		ys = []
+		if compute_median:
+			ys = [statistics.median(ext.no_of_users for ext in quantile) for quantile in quantiles]
+		else:
+			ys = [statistics.mean(ext.no_of_users for ext in quantile) for quantile in quantiles]
+		plt.bar(x=xs, height=ys)
+		plt.xlabel("Quantiles of extensions, sorted by user count")
+		plt.ylabel(f"{'Median' if compute_median else 'Average'} user count in each quantile")
+		plt.show()
+
+	def plot_bars_quantiles_extension_size(self, no_of_quantiles=4, compute_median=False): # (8.)
+		print(f"(8.) Bar plot of the {'median' if compute_median else 'average'} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count.")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extensions = [ext for ext in extensions if ext.size not in [None, ""]] # Remove all extensions where we have no value for the size!
+		extensions.sort(key=lambda ext: ext.no_of_users) # Sort extensions by no. of users, in ascending order.
+		size_per_quantile = len(extensions) // no_of_quantiles # = how many extensions will be in each quantile
+		quantiles = [extensions[i*size_per_quantile:(i+1)*size_per_quantile] for i in range(no_of_quantiles-1)] + [extensions[(no_of_quantiles-1)*size_per_quantile:]]
+		xs = [i+1 for i in range(no_of_quantiles)] # e.g.: [1,2,3,4]
+		ys = []
+		if compute_median:
+			ys = [statistics.median(parse_size(ext.size)/1000.0 for ext in quantile) for quantile in quantiles] # divide by 1000.0 to turn bytes into KB
+		else:
+			ys = [statistics.mean(parse_size(ext.size)/1000.0 for ext in quantile) for quantile in quantiles]
+		plt.bar(x=xs, height=ys)
+		plt.xlabel("Quantiles of extensions, sorted by user count")
+		plt.ylabel(f"{'Median' if compute_median else 'Average'} extension size in each quantile (KB)")
 		plt.show()
 
 
@@ -627,6 +665,10 @@ def main():
 		extensions_csv.plot_cum_distr_no_of_users_as_percentage_of_all_users() # (4.)
 		extensions_csv.plot_corr_no_of_users_time_since_last_update() # (5.)
 		extensions_csv.plot_corr_no_of_users_ext_size() # (6.)
+		for compute_median in [False, True]:
+			for no_of_quantiles in [4, 10, 20]:
+				extensions_csv.plot_bars_quantiles_user_count(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (7.)
+				extensions_csv.plot_bars_quantiles_extension_size(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (8.)
 
 	elif args.download_crxs:
 		# Download the .CRX file for all extensions *ALREADY* listed in the (extensions).csv file:

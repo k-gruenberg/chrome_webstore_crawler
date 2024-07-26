@@ -54,8 +54,11 @@ class ChromeExtension:
 			self.languages\
 		])
 
+	def __str__(self):
+		return self.as_cvs_line()
+
 	def from_csv_line(csv_line):
-		vals = csv_line.split(",")
+		vals = csv_line.rstrip('\r\n').split(",")
 		return ChromeExtension(vals[0], vals[1], vals[2], int(vals[3]), int(vals[4]), float(vals[5]), vals[6], vals[7], vals[8], int(vals[9]), vals[10])
 
 	def download_info_from_url(self, extension_url=None, user_agent=""):
@@ -467,6 +470,12 @@ def main():
 		Note that this requires also specifying the destination folder for the .CRX files using the --crx-download parameter.
 		If you only want to download the .CRX files of extensions with a certain number of users, use the --crx-download-user-threshold argument for that.
 		""")
+	group1.add_argument('--random-subset', action='store_true',
+		help="""
+		In this mode, there won't be any crawling.
+		Instead, the .CRX file given will be used to create a new, smaller .CRX file from a random subset of extensions taken from the big, original .CSV file.
+		By default, the size of this random subset will be 100, use the --random-subset-size parameter to specify something else.
+		""")
 
 	parser.add_argument('--csv-file',
 		type=str,
@@ -525,6 +534,16 @@ def main():
 		The default user agent will be used when this parameter isn't specified.
 		""",
 		metavar='USER_AGENT')
+
+	parser.add_argument('--random-subset-size',
+		type=int,
+		default=100,
+		help="""
+		The size of the random subset to be selected.
+		Only has an effect when used in the --random-subset mode.
+		Default: 100
+		""",
+		metavar='SUBSET_SIZE')
 
 	args = parser.parse_args()
 
@@ -703,9 +722,29 @@ def main():
 					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
 			print(f"Finished. Total no. of extensions: {len(extensions)} | Downloaded successfully: {count_download_successful} | Download failed: {count_download_failed} | Ignored (due to low user count): {count_download_skipped}")
 
+	elif args.random_subset:
+		# Take the .CSV file, take a *random* subset of size --random-subset-size and put that into a *new* .CSV file:
+		
+		# Take a *random* subset of size --random-subset-size of the existing .CSV file:
+		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		extensions = extensions_csv.read() # If this were [i+1 for i in range(100)] ...
+		extensions_sample = np.random.choice(extensions, size=args.random_subset_size) # ...then this would be: [67,  3, 47, 94, 30, 42, 23, 13, 72, 88] for args.random_subset_size=10 for example.
+		
+		# Choose a file name that does not exist yet: (otherwise, ExtensionsCSV(outfile) would be *appending* to an existing file! (as it's supposed to!))
+		outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.random_subset_size}.csv"
+		i = 2
+		while Path(outfile).is_file():
+			outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.random_subset_size}_no{i}.csv"
+			i += 1
+
+		# Create the *new* .CSV file:
+		out_extensions_csv = ExtensionsCSV(outfile)
+		for ext in extensions_sample:
+			out_extensions_csv.add(ext)
+		print(f"{outfile} now contains a random subset of {args.random_subset_size} extensions from {args.csv_file}")
 
 	else:
-		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs flag was specified!", file=sys.stderr)
+		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs nor --random-subset flag was specified!", file=sys.stderr)
 
 
 

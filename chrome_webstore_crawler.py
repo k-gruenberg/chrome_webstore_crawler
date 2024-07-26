@@ -473,8 +473,16 @@ def main():
 	group1.add_argument('--random-subset', action='store_true',
 		help="""
 		In this mode, there won't be any crawling.
-		Instead, the .CRX file given will be used to create a new, smaller .CRX file from a random subset of extensions taken from the big, original .CSV file.
-		By default, the size of this random subset will be 100, use the --random-subset-size parameter to specify something else.
+		Instead, the .CRX file given will be used to create a new, smaller .CRX file from a *random* subset of extensions taken from the big, original .CSV file.
+		By default, the size of this random subset will be 100, use the --subset-size parameter to specify something else.
+		""")
+	group1.add_argument('--user-base-representative-subset', action='store_true',
+		help="""
+		In this mode, there won't be any crawling.
+		Instead, the .CRX file given will be used to create a new, smaller .CRX file from a *representative* subset of extensions taken from the big, original .CSV file.
+		"Representative" in this case means that the extensions won't be chosen randomly from the set of all extensions (each extension being equally likely),
+		but instead that the extensions will be chosen randomly from the *user base*, making more frequently used extensions much more likely to be chosen.
+		By default, the size of this random subset will be 100, use the --subset-size parameter to specify something else.
 		""")
 
 	parser.add_argument('--csv-file',
@@ -535,12 +543,12 @@ def main():
 		""",
 		metavar='USER_AGENT')
 
-	parser.add_argument('--random-subset-size',
+	parser.add_argument('--subset-size',
 		type=int,
 		default=100,
 		help="""
-		The size of the random subset to be selected.
-		Only has an effect when used in the --random-subset mode.
+		The size of the (random, or representative) subset to be selected.
+		Only has an effect when used in the --random-subset mode or --user-base-representative-subset mode.
 		Default: 100
 		""",
 		metavar='SUBSET_SIZE')
@@ -723,28 +731,58 @@ def main():
 			print(f"Finished. Total no. of extensions: {len(extensions)} | Downloaded successfully: {count_download_successful} | Download failed: {count_download_failed} | Ignored (due to low user count): {count_download_skipped}")
 
 	elif args.random_subset:
-		# Take the .CSV file, take a *random* subset of size --random-subset-size and put that into a *new* .CSV file:
+		# Take the .CSV file, take a *random* subset of size --subset-size and put that into a *new* .CSV file:
 		
-		# Take a *random* subset of size --random-subset-size of the existing .CSV file:
+		# Take a *random* subset of size --subset-size of the existing .CSV file:
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
 		extensions = extensions_csv.read() # If this were [i+1 for i in range(100)] ...
-		extensions_sample = np.random.choice(extensions, size=args.random_subset_size) # ...then this would be: [67,  3, 47, 94, 30, 42, 23, 13, 72, 88] for args.random_subset_size=10 for example.
+		extensions_sample = np.random.choice(extensions, size=args.subset_size) # ...then this would be: [67,  3, 47, 94, 30, 42, 23, 13, 72, 88] for args.subset_size=10 for example.
 		
 		# Choose a file name that does not exist yet: (otherwise, ExtensionsCSV(outfile) would be *appending* to an existing file! (as it's supposed to!))
-		outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.random_subset_size}.csv"
+		outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.subset_size}.csv"
 		i = 2
 		while Path(outfile).is_file():
-			outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.random_subset_size}_no{i}.csv"
+			outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.subset_size}_no{i}.csv"
 			i += 1
 
 		# Create the *new* .CSV file:
 		out_extensions_csv = ExtensionsCSV(outfile)
 		for ext in extensions_sample:
 			out_extensions_csv.add(ext)
-		print(f"{outfile} now contains a random subset of {args.random_subset_size} extensions from {args.csv_file}")
+		print(f"{outfile} now contains a random subset of {args.subset_size} extensions from {args.csv_file}")
+
+	elif args.user_base_representative_subset:
+		# Take the .CSV file, take a *representative* subset of size --subset-size and put that into a *new* .CSV file:
+
+		# Take a *representative* subset of size --subset-size of the existing .CSV file:
+		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		extensions = extensions_csv.read()
+		# ...now make this set representative by repeating each extension N times where N is the no. of users of that extension:
+		extensions = [[ext] * ext.no_of_users for ext in extensions]
+		extensions = [x for xs in extensions for x in xs] # flattens the above list of lists, cf. https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists
+		# ...now sample --subset-size extensions from this enlarged set of extensions; making sure no extension is selected twice:
+		extensions_sample = []
+		while len(extensions_sample) < args.subset_size:
+			ext = random.choice(extensions)
+			if ext.extension_id not in [e.extension_id for e in extensions_sample]:
+				extensions_sample.append(ext)
+
+		# Choose a file name that does not exist yet: (otherwise, ExtensionsCSV(outfile) would be *appending* to an existing file! (as it's supposed to!))
+		outfile = args.csv_file.removesuffix(".csv") + f"_representative_sample_{args.subset_size}.csv"
+		i = 2
+		while Path(outfile).is_file():
+			outfile = args.csv_file.removesuffix(".csv") + f"_representative_sample_{args.subset_size}_no{i}.csv"
+			i += 1
+
+		# Create the *new* .CSV file:
+		out_extensions_csv = ExtensionsCSV(outfile)
+		for ext in extensions_sample:
+			out_extensions_csv.add(ext)
+		print(f"{outfile} now contains a user-base-representative subset of {args.subset_size} extensions from {args.csv_file}")
+
 
 	else:
-		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs nor --random-subset flag was specified!", file=sys.stderr)
+		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs nor --random-subset nor --user-base-representative-subset flag was specified!", file=sys.stderr)
 
 
 

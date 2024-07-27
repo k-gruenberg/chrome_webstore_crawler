@@ -17,6 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 import statistics
+from math import log10, floor
 
 
 
@@ -241,6 +242,7 @@ class ExtensionsCSV:
 		with open(self.path, "a") as csv_file:
 			csv_file.write(extension.as_cvs_line() + "\n")
 
+	# (0.) PDF/bar plot: frequency of each bin of no. of users (<10 users, <100 users, <1000 users, ...) => are most extensions rarely used?
 	# (1.) plot cumulative distribution function of extension size in KB => important as larger extensions are generally harder to analyze
 	# (2.) plot cumulative distribution function of time since last update in months => might show that there are many abandoned extensions out there
 	# (3.) plot cumulative distribution function of no. of users => might show that most extensions in the store are rarely downloaded
@@ -270,6 +272,25 @@ class ExtensionsCSV:
 
 	plt.show()
 	"""
+
+	def plot_pdf_no_of_users(self): # (0.)
+		print("(0.) Plotting PDF (Probability Density Function) of no of users (<10 users, <100 users, <1000 users, ...).")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+		extensions.sort(key=lambda ext: ext.no_of_users) # Sort extensions by no. of users, in ascending order.
+		# Compute bins (<10 users, <100 users, <1000 users, ...):
+		bins = {} # something like: {10: 12, 100: 1234, 1000: 123, 10000: ...}
+		for ext in extensions:
+			bin_ = 10 if ext.no_of_users < 10 else 10**(floor(log10(ext.no_of_users))+1) # e.g., turns 123 into 1000, i.e., the smallest power of 10 that's strictly(!) larger than ext.no_of_users
+			if bin_ not in bins.keys():
+				bins[bin_] = 0
+			bins[bin_] += 1
+		# Plot:
+		xs = sorted(list(bins.keys()))
+		ys = [bins[x] for x in xs]
+		plt.bar(x=[f"<{x:,}" for x in xs], height=ys) # ":_" to format with thousands separator, see: https://stackoverflow.com/questions/1823058/how-to-print-a-number-using-commas-as-thousands-separators
+		plt.xlabel("No. of users")
+		plt.ylabel("No. of extensions")
+		plt.show()
 
 	def plot_cum_distr_ext_size(self): # (1.)
 		print("(1.) Plotting cumulative distribution function of extension size in KB.")
@@ -681,15 +702,19 @@ def main():
 	elif args.stats:
 		# ##### ##### ##### ##### Step 3: ##### ##### ##### #####
 		# Compute some statistics based on './extensions.csv':
+		# (0.) PDF/bar plot: frequency of each bin of no. of users (<10 users, <100 users, <1000 users, ...) => are most extensions rarely used?
 		# (1.) plot cumulative distribution function of extension size in KB => important as larger extensions are generally harder to analyze
 		# (2.) plot cumulative distribution function of time since last update in months => might show that there are many abandoned extensions out there
 		# (3.) plot cumulative distribution function of no. of users => might show that most extensions in the store are rarely downloaded
 		# (4.) plot cumulative distribution function of no. of users as percentage of sum of *all* users => might show that there are many users of small extensions
 		# (5.) plot correlation between no. of users and time since last update in months (scatter plot) => how frequently are abandoned extensions used by users?
 		# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
+		# (7.) bar plot of the {median/average} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are most extensions rarely used?
+		# (8.) bar plot of the {median/average} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are more rarely used extensions more simple/smaller?
 		# ##### ##### ##### ##### ##### ##### ##### ##### #####
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
 		print(f"Generating statistics based on {len(extensions_csv.read())} crawled extensions...")
+		extensions_csv.plot_pdf_no_of_users() # (0.)
 		extensions_csv.plot_cum_distr_ext_size() # (1.)
 		extensions_csv.plot_cum_distr_time_since_last_update() # (2.)
 		extensions_csv.plot_cum_distr_no_of_users() # (3.)

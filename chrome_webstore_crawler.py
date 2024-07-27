@@ -667,8 +667,12 @@ def main():
 								print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
 						chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
 					except urllib.error.HTTPError as http_err:
-						if http_err.code == 404:
-							print(f"Error: Visiting extension URL '{extension_url}' resulted in a 404 HTTP error, skipping this extension (it will not be added to the .CSV file).", file=sys.stderr)
+						if http_err.code in [404, 301]:
+							# urllib.error.HTTPError: HTTP Error 404: Not Found
+							#   => e.g.: https://chrome.google.com/webstore/detail/shopping-saviour/jagmhbnfefommcdbkodbdbmklbagodcl
+							# urllib.error.HTTPError: HTTP Error 301: The HTTP server returned a redirect error that would lead to an infinite loop.
+							#   => e.g.: https://chrome.google.com/webstore/detail/%D9%83%D9%88%D8%AF-%D8%AE%D8%B5%D9%85-%D9%86%D8%B3%D9%8A%D9%85-%D9%84%D9%84%D9%88%D8%B1%D8%AF-%2510-%D9%84%D9%83/ngbejcbghammjgkmheipacdnkelaocco
+							print(f"Error: Visiting extension URL '{extension_url}' resulted in a {http_err.code} HTTP error ({http_err}), skipping this extension (it will not be added to the .CSV file).", file=sys.stderr)
 						else:
 							raise # re-throw any other HTTPError, e.g., a "urllib.error.HTTPError: HTTP Error 503: Service Unavailable"
 					# Sleep:

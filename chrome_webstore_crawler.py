@@ -355,7 +355,7 @@ class ExtensionsCSV:
 
 	# (ToDo: color scatter plot points according to the average user rating, e.g., green = 5.0 star rating, etc.)
 
-	def plot_corr_no_of_users_time_since_last_update(self): # (5.)
+	def plot_corr_no_of_users_time_since_last_update(self, log_scale=False): # (5.)
 		print("(5.) Correlation between no. of users and time since last update in months (scatter plot).")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
 		extensions = [ext for ext in extensions if ext.no_of_users is not None and ext.months_since_last_update() is not None]
@@ -364,9 +364,11 @@ class ExtensionsCSV:
 		plt.scatter(no_of_users, months_since_last_update, c='blue')
 		plt.xlabel("No. of users")
 		plt.ylabel("Months since last update")
+		if log_scale:
+			plt.xscale('log') # https://stackoverflow.com/questions/773814/plot-logarithmic-axes
 		plt.show()
 
-	def plot_corr_no_of_users_ext_size(self): # (6.)
+	def plot_corr_no_of_users_ext_size(self, log_scale=False): # (6.)
 		print("(6.) Correlation between no. of users and extension size.")
 		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
 		extensions = [ext for ext in extensions if ext.no_of_users is not None and ext.size not in [None, ""]]
@@ -375,6 +377,8 @@ class ExtensionsCSV:
 		plt.scatter(no_of_users, extension_size, c='blue')
 		plt.xlabel("No. of users")
 		plt.ylabel("Extension size (KB)")
+		if log_scale:
+			plt.xscale('log') # https://stackoverflow.com/questions/773814/plot-logarithmic-axes
 		plt.show()
 
 	def plot_bars_quantiles_user_count(self, no_of_quantiles=4, compute_median=False): # (7.)
@@ -719,8 +723,10 @@ def main():
 		extensions_csv.plot_cum_distr_time_since_last_update() # (2.)
 		extensions_csv.plot_cum_distr_no_of_users() # (3.)
 		extensions_csv.plot_cum_distr_no_of_users_as_percentage_of_all_users() # (4.)
-		extensions_csv.plot_corr_no_of_users_time_since_last_update() # (5.)
-		extensions_csv.plot_corr_no_of_users_ext_size() # (6.)
+		extensions_csv.plot_corr_no_of_users_time_since_last_update(log_scale=False) # (5.)
+		extensions_csv.plot_corr_no_of_users_time_since_last_update(log_scale=True) # (5.)
+		extensions_csv.plot_corr_no_of_users_ext_size(log_scale=False) # (6.)
+		extensions_csv.plot_corr_no_of_users_ext_size(log_scale=True) # (6.)
 		for compute_median in [False, True]:
 			for no_of_quantiles in [4, 10, 20]:
 				extensions_csv.plot_bars_quantiles_user_count(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (7.)

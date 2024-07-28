@@ -251,6 +251,7 @@ class ExtensionsCSV:
 	# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
 	# (7.) bar plot of the {median/average} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are most extensions rarely used?
 	# (8.) bar plot of the {median/average} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are more rarely used extensions more simple/smaller?
+	# (9.) Most common languages as a bar chart.
 
 	"""
 	A simple example illustrating how to plot a CDF with numpy and plotplot
@@ -420,6 +421,38 @@ class ExtensionsCSV:
 		plt.bar(x=xs, height=ys)
 		plt.xlabel("Quantiles of extensions, sorted by user count")
 		plt.ylabel(f"{'Median' if compute_median else 'Average'} extension size in each quantile (KB)")
+		plt.show()
+
+	def plot_bars_most_common_languages(self): # (9.)
+		print("(9.) Most common languages as a bar chart.")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+
+		# Collect all languages:
+		languages = set()
+		for ext in extensions:
+			for lang in ext.languages.split("|"):
+				languages.add(lang)
+		print(f"\t=> There are a total of {len(languages)} distinct languages (or rather language codes): {languages}")
+
+		# Count how often each language occurs:
+		lang_counts = {}
+		for lang in languages:
+			count = 0
+			for ext in extensions:
+				if lang in ext.languages.split("|"):
+					count += 1
+			lang_counts[lang] = count
+		print(f"\t=> Occurence of each of these languages: {lang_counts}")
+
+		# Sort languages descendingly by their count:
+		languages = list(languages)
+		languages.sort(key=lambda lang: lang_counts[lang], reverse=True)
+
+		# Plot bar chart of the {MAX_NO_OF_BARS} most common languages:
+		MAX_NO_OF_BARS = 20
+		plt.bar(x=languages[:MAX_NO_OF_BARS], height=[lang_counts[lang] for lang in languages][:MAX_NO_OF_BARS])
+		plt.xlabel(f"{MAX_NO_OF_BARS} most common languages")
+		plt.ylabel(f"No. of extensions")
 		plt.show()
 
 
@@ -721,6 +754,7 @@ def main():
 		# (6.) plot correlation between no. of users and extension size => do users generally use more complex (and therefore harder to analyze) extensions?
 		# (7.) bar plot of the {median/average} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are most extensions rarely used?
 		# (8.) bar plot of the {median/average} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are more rarely used extensions more simple/smaller?
+		# (9.) Most common languages as a bar chart.
 		# ##### ##### ##### ##### ##### ##### ##### ##### #####
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
 		print(f"Generating statistics based on {len(extensions_csv.read())} crawled extensions...")
@@ -737,6 +771,7 @@ def main():
 			for no_of_quantiles in [4, 10, 20]:
 				extensions_csv.plot_bars_quantiles_user_count(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (7.)
 				extensions_csv.plot_bars_quantiles_extension_size(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (8.)
+		extensions_csv.plot_bars_most_common_languages() # (9.)
 
 	elif args.download_crxs:
 		# Download the .CRX file for all extensions *ALREADY* listed in the (extensions).csv file:

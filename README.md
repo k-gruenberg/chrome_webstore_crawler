@@ -70,3 +70,7 @@ Regarding extension size, we can see that extensions with either a very low or a
 We can also see that there are a few exotic outliers regarding extension size:
 
 ![scatter plot, number of users on x-axis (log scale), extension size in kilo-byte on y-axis](plots/SCATTER_extension_size.png)
+
+By far the most common extension language is English, followed by Japanese, Russian, French and Chinese:
+
+![bar plot showing the 20 most common languages](plots/20_most_common_languages.png)

@@ -71,6 +71,8 @@ We can also see that there are a few exotic outliers regarding extension size:
 
 ![scatter plot, number of users on x-axis (log scale), extension size in kilo-byte on y-axis](plots/SCATTER_extension_size.png)
 
-By far the most common extension language is English, followed by Japanese, Russian, French and Chinese:
+By far the most common extension language is English, followed by Japanese, Russian, French and Chinese; in total there are `55` distinct language codes in use (note that a single extensions can have/exist in more than one language):
 
 ![bar plot showing the 20 most common languages](plots/20_most_common_languages.png)
+
+The least common language code is `en-AU` with just `273` extensions using it.

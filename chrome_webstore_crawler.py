@@ -284,9 +284,11 @@ class ExtensionsCSV:
 			if bin_ not in bins.keys():
 				bins[bin_] = 0
 			bins[bin_] += 1
+		print(f"\t=> Bins: {bins}")
 		# Plot:
 		xs = sorted(list(bins.keys()))
 		ys = [bins[x] for x in xs]
+		print(f"\t=> Bar plot bar heights (unit: number/count of extensions): {ys}")
 		plt.bar(x=[f"<{x:,}" for x in xs], height=ys) # ":_" to format with thousands separator, see: https://stackoverflow.com/questions/1823058/how-to-print-a-number-using-commas-as-thousands-separators
 		plt.xlabel("No. of users")
 		plt.ylabel("No. of extensions")
@@ -319,6 +321,9 @@ class ExtensionsCSV:
 		print(f"\t=> Bin assignments: {values[:5]} ... {values[-5:]}")
 		cumulative = np.cumsum(values) # = [1, 3, 6, 8, 9]
 		cumulative_as_percentage = [100.0*(x/cumulative[-1]) for x in cumulative] # = [11.11, 33.33, 66.66, 88.88, 100.0]
+		print(f"\t=> Cumulative percentages (no. of months since last update -> cumulative percentage): {[(float(base[i]), float(cumulative_as_percentage[i])) for i in range(len(cumulative_as_percentage))]}")
+		for i in range(len(cumulative_as_percentage)):
+			print(f"\t=> {100-cumulative_as_percentage[i]}% of extensions have not been updated for at least {base[i]} months")
 		plt.plot(base[:-1], cumulative_as_percentage, c='blue')
 		plt.xlabel("No. of months since last update")
 		plt.ylabel("%")

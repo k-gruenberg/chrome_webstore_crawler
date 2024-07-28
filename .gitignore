@@ -1,8 +1,5 @@
 .DS_Store
-*.xml
-*.csv
-*.html
-*.png
+sitemap.xml
 
 
 # Byte-compiled / optimized / DLL files

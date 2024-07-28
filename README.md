@@ -1,6 +1,8 @@
 # chrome_webstore_crawler
 A Python script crawling all extensions from the Chrome Web Store: saving them and/or creating a CSV with statistics about them.
 
+## Command usage
+
 ```
 $ python3 chrome_webstore_crawler.py --help
 usage: chrome_webstore_crawler.py [-h] (--crawl | --stats | --download-crxs | --random-subset | --user-base-representative-subset) [--csv-file CSV_FILE] [--sitemap-xml SITEMAP_XML] [--crx-download FOLDER_PATH]
@@ -39,3 +41,32 @@ options:
   --subset-size SUBSET_SIZE
                         The size of the (random, or representative) subset to be selected. Only has an effect when used in the --random-subset mode or --user-base-representative-subset mode. Default: 100
 ```
+
+## Results
+
+From 24 Jul 2024 to 29 Jul 2024, this tool was able to crawl information on a total of `165,083` extensions from the Chrome Web Store.
+ID, name, description, number of users, number of ratings, average rating, version number, size, last update, number of languages and languages for each of them can be found in CSV format in `extensions.csv`.
+
+`57,511` extensions (`34.84%`) had fewer than 10 users; an additional `47,964` extensions (`29.05%`) had fewer than 100 users; and another `33,899` extensions (`20.53%`) had fewer than 1,000 users - making a total of `139,374`, or `84.43%` of all extensions, which have fewer than 1,000 users:
+
+![PDF bar plot, number of users on x-axis, number of extensions on y-axis](PDF_users.png)
+
+While more than `17%` of extensions had been updated within the last day, more than `28%` of extensions had not been updated for 5 years or more; `1.28%` of extensions had not been updated for at least `150.19` months (over twelve and a half years).
+
+![CDF plot, number of months since last update on x-axis, percentage on y-axis](CDF_last_update.png)
+
+We can see, however, that extensions with more users are generally updated more frequently and that extensions that have not been updated for over a decade are predominantly extensions with fewer users:
+
+![scatter plot, number of users on x-axis (log scale), months size last update on y-axis](SCATTER_last_update.png)
+
+Adding up the user count of all extensions we get a fictional(!) amount of `2,168,731,095` total users (i.e., assuming no user has more than one extension installed). We can see that most of these users stem from the more frequently used extensions; i.e., that, seen overall, people using less widespread extensions only make up a small portion of the total user base:
+
+![CDF plot, percantage of extensions on x-axis, percentage of cumulative user count on y-axis](CDF_cumulative_user_count.png)
+
+Regarding extension size, we can see that extensions with either a very low or a very high user count are a bit larger than extensions with medium user count:
+
+![bar plot, quantiles of extensions, sorted by user count on x-axis, median extension size in kilo-byte in each quantile on y-axis](BAR_median_extension_size.png)
+
+We can also see that there are a few exotic outliers regarding extension size:
+
+![scatter plot, number of users on x-axis (log scale), extension size in kilo-byte on y-axis](SCATTER_extension_size.png)

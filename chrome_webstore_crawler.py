@@ -351,6 +351,7 @@ class ExtensionsCSV:
 		extensions.sort(key=lambda ext: ext.no_of_users) # Sort extensions by no. of users, in ascending order.
 		no_of_users = [ext.no_of_users for ext in extensions] # = [0, 1, 8, 270, 308, ...] = the no. of users for each extension
 		sum_of_all_user_counts = sum(no_of_users) # Note that this number might be rather large as some users might have *multiple* extensions installed!
+		print(f"\t=> Sum of all user counts: {sum_of_all_user_counts}")
 		xs = [ x for x in range(101) ] # = % of extensions
 		ys = [ 100 * sum(ext.no_of_users for ext in extensions[:int(len(extensions)*(x/100))]) / sum_of_all_user_counts for x in xs ] # = % of cumulative user count
 		plt.plot(xs, ys, c='blue')

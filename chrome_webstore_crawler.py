@@ -62,6 +62,9 @@ class ChromeExtension:
 		vals = csv_line.rstrip('\r\n').split(",")
 		return ChromeExtension(vals[0], vals[1], vals[2], int(vals[3]), int(vals[4]), float(vals[5]), vals[6], vals[7], vals[8], int(vals[9]), vals[10])
 
+	def langs(self):
+		return self.languages.split("|")
+
 	def download_info_from_url(self, extension_url=None, user_agent=""):
 		if extension_url is None:
 			extension_url = "https://chrome.google.com/webstore/detail/" + self.extension_id
@@ -548,6 +551,18 @@ def main():
 		but instead that the extensions will be chosen randomly from the *user base*, making more frequently used extensions much more likely to be chosen.
 		By default, the size of this random subset will be 100, use the --subset-size parameter to specify something else.
 		""")
+	group1.add_argument('--query',
+		type=str,
+		help="""
+		Execute a Python syntax query on the .CSV file.
+		Some example queries:
+		"set(lang for ext in extensions for lang in ext.langs())";
+		"[ext for ext in extensions if ext.no_of_languages == 2 and 'de' in ext.langs() and ('en' in ext.langs() or 'en-US' in ext.langs())]";
+		"[f'{ext.extension_id},{ext.title},{ext.no_of_users},{ext.languages}' for ext in extensions if ext.no_of_languages == 2 and 'de' in ext.langs() and ('en' in ext.langs() or 'en-US' in ext.langs())]";
+		"sorted([ext for ext in extensions if ext.no_of_languages == 2 and 'de' in ext.langs() and ('en' in ext.langs() or 'en-US' in ext.langs())], key=lambda ext: ext.no_of_users, reverse=True)";
+		"[f'{e.extension_id},{e.title},{e.no_of_users},{e.languages}' for e in sorted([ext for ext in extensions if ext.no_of_languages == 2 and 'de' in ext.langs() and ('en' in ext.langs() or 'en-US' in ext.langs())], key=lambda ext: ext.no_of_users, reverse=True)]"
+		""",
+		metavar='QUERY')
 
 	parser.add_argument('--csv-file',
 		type=str,
@@ -856,9 +871,17 @@ def main():
 			out_extensions_csv.add(ext)
 		print(f"{outfile} now contains a user-base-representative subset of {args.subset_size} extensions from {args.csv_file}")
 
+	elif args.query != "":
+		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
+		extensions = extensions_csv.read()
+		print(f"Executing query '{args.query}' on {len(extensions)} extensions from '{args.csv_file}' ...", file=sys.stderr) # print to stderr so user can pipe stdout into a .CSV output file
+
+		query_result = eval(args.query) # e.g. "[ext for ext in extensions if ext.no_of_languages == 2 and 'de' in ext.langs() and ('en' in ext.langs() or 'en-US' in ext.langs())]"
+		print(f"Query returned {len(query_result)} results:", file=sys.stderr) # print to stderr so user can pipe stdout into a .CSV output file
+		print("\n".join(str(item) for item in query_result))
 
 	else:
-		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs nor --random-subset nor --user-base-representative-subset flag was specified!", file=sys.stderr)
+		print(f"Argument Error: Neither --crawl nor --stats nor --download-crxs nor --random-subset nor --user-base-representative-subset flag nor --query argument was specified!", file=sys.stderr)
 
 
 

@@ -158,4 +158,6 @@ No. users | Extension ID                     | Name
 5000000   | mkdijghjjdkfpohnmmoicikpkjodcmio | TubeBlock - Adblock for Youtube
 5000000   | aghfnjkcakhmadgdomlmlhhaocbkloab | Just Black
 
+Together, these `69` extensions add up to a total of `932,000,000` (fictional) users; or `42.97%` of the total (fictional) user count of `2,168,731,095`.
 
+All `411` extensions with `>=1M` users add up to a total of `1,523,000,000` (fictional) users; or `70.23%` of the total (fictional) user count of `2,168,731,095`.

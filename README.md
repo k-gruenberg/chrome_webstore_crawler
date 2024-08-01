@@ -81,3 +81,81 @@ By far the most common extension language is English, followed by Japanese, Russ
 ![bar plot showing the 20 most common languages](plots/20_most_common_languages.png)
 
 The least common language code is `en-AU` with just `273` extensions using it.
+
+## The most commonly used extensions
+
+Below is a list of all Chrome extensions with `>=5M` users:
+
+No. users | Extension ID                     | Name
+--------- | -------------------------------- | ---------------------------------------------------
+205000000 | efaidnbmnnnibpcajpcglclefindmkaj | Adobe Acrobat: PDF edit convert sign tools
+60000000  | gighmmpiobklfepjocnamgkkbiglidom | AdBlock — block ads across the web
+40000000  | kbfnbcaeplbcioakkpcpgfkobkghlhen | Grammarly: AI Writing and Grammar Checker App
+40000000  | cfhdojbkjhnklbpkdaibdccddilifddb | Adblock Plus - free ad blocker
+34000000  | cjpalhdlnbpafiamejdnhcphjbkeiagm | uBlock Origin
+31000000  | aapbdbdomjkkjkaonfhkkikfgjllcleb | Google Translate
+29000000  | ncennffkjdiamlpmcbajkmaiiiddgioo | 迅雷下载支持
+28000000  | jlhmfgmfgeifomenelglieieghnjghma | Cisco Webex Extension
+26000000  | inomeogfingihgjfjlpeplalcfajhgai | Chrome Remote Desktop
+19000000  | bmnlcjabgnpnenekpadlanbbkooimhnj | PayPal Honey: Automatic Coupons &amp; Cash Back
+16000000  | nkbihfbeogaeaoehlefnkodbefgpgknn | MetaMask
+16000000  | ifbmcpbgkhlpfcodhjhdbllhiaomkdej | Office - Enable Copy and Paste
+15000000  | llbcnfanfmjhpedaedhbcnpgeepdnnok | Online Security
+13000000  | bgnkhhnnamicmpeenaelnjfhikgbkllg | AdGuard AdBlocker
+11000000  | mkeimkkbcndbdlfkbfhhlfgkilcfniic | Shade Dark Mode
+11000000  | dncepekefegjiljlfbihljgogephdhph | TouchEn PC보안 확장
+11000000  | oocalimimngaihdkbihfgmpkcpnmlaoa | Netflix Party is now Teleparty
+11000000  | dhdgffkkebhmkfjojejmpbldmpobfkfo | Tampermonkey
+10000000  | glcimepnljoholdmjchkloafkggfoijh | 360 Internet Protection
+9000000   | cmedhionkhpnakcndndgjdbohmhepckk | Adblock for Youtube™
+9000000   | hdokiejnpimakedhajhdlcegeplioahd | LastPass: Free Password Manager
+9000000   | iifchhfnnmpdbibifmljnfjhpififfog | CryptoPro Extension for CAdES Browser Plug-in
+9000000   | ihcjicgdanjaechkgeegckofjjedodee | Malwarebytes Browser Guard
+8000000   | jkfkhkobbahllilejfidknldjhgelcog | ChatGPT Plus for Google
+8000000   | jjkchpdmjjdmalgembblgafllbpcjlei | Trellix Endpoint Security Web Control
+8000000   | lgfokdfepidpjodalhpbjindjackhidg | ChatGenie
+8000000   | majdfhpaihoncoakbjgbdhglocklcgno | Free VPN for Chrome - VPN Proxy VeePN
+8000000   | fdpohaocaechififmbbbbbknoalclacl | GoFullPage - Full Page Screen Capture
+8000000   | nenlahapcbofgnanklpelkaejcehkggg | Capital One Shopping: Save Now
+8000000   | pjbgfifennfhnbkhoidkdchbflppjncb | Dark Mode - Dark Reader for Сhrome
+8000000   | fcfhplploccackoneaefokcmbjfbkenj | Free VPN for Chrome by 1clickvpn
+7000000   | anenfchlanlnhmjibebhkgbnelojooic | Blaze VPN
+7000000   | gomekmidlodglbbmalcneegieacbdmki | Avast Online Security &amp; Privacy
+7000000   | ldgjechphfcppimcgcjcblmnhkjniakn | Page Auto Refresh
+7000000   | kgjfgplpablkjnlkjmjdecgdpfankdle | Zoom Chrome Extension
+7000000   | ohlijedbbfaeobchboobaffbmpjdiinh | Volume Booster
+7000000   | fkepacicchenbjecpbpbclokcabebhah | iCloud Bookmarks
+6000000   | lpcaedmchfhocbbapmcbpinfpgnhiddi | Google Keep Chrome Extension
+6000000   | gpdjojdkbbmdfjfahjcgigfpmkopogic | Save to Pinterest
+6000000   | liecbddmkiiihnedobmlmillhodjkdmb | Loom – Screen Recorder &amp; Screen Capture
+6000000   | eofcbnmajmjmplflapaojjnihcjkigck | Avast SafePrice
+5000000   | nkklhdhlfknnhmmldffbofbbomlicpig | Snap VPN
+5000000   | bhghoamapcdpbohphigoooaddinpkbai | Authenticator
+5000000   | kbdlpfmnciffgllhfijijnakeipkngbe | Safum free VPN
+5000000   | cifnddnffldieaamihfkhkdgnbhfmaci | Foxit PDF Creator
+5000000   | imlalpfjijneacdcjgjmphcpmlhkhkho | Ad Skip Master for Youtube
+5000000   | gnidjfdekbljleajoeamecfijnhbgndl | Sound Booster that Works!
+5000000   | ooadnieabchijkibjpeieeliohjidnjj | 네이버 동영상 플러그인
+5000000   | gkojfkhlekighikafcpjkiklfbnlmeio | Hola VPN - Your Website Unblocker
+5000000   | nbpljhppefmpifoffhhmllmacfdckokh | Snap Color Picker
+5000000   | hehijbfgiekmjfkfjpbkbammjbdenadd | IE Tab
+5000000   | kgfeiebnfmmfpomhochmlfmdmjmfedfj | 2048 Classic Game
+5000000   | mfhehppjhmmnlfbbopchdfldgimhfhfk | Google Classroom
+5000000   | omghfjlpggmjjaagoclmmobgdodcjboh | Browsec VPN - Free VPN for Chrome
+5000000   | ngpkfeladpdiabdhebjlgaccfonefmom | Adkrig
+5000000   | flliilndjeohchalpbbcdekjklbdgfkk | Avira Browser Safety
+5000000   | mmeijimgabbpbgpdklnllpncmdofkcpn | Screencastify - Screen Video Recorder
+5000000   | pdlmjggogjgoaifncfpkhldgfilgghgc | Screenshot Master
+5000000   | eimadpbcbfnmbkopoojfekhnkhdbieeh | Dark Reader
+5000000   | ekhagklcjbdpajgpjgmbionohlpdbjgc | Zotero Connector
+5000000   | chnccghejnflbccphgkncbmllhfljdfa | Super Video Speed Controller
+5000000   | pfpcdpogkleagockhnjfkoejmjjebpem | Overlay Translate
+5000000   | bkdgflcldnnnapblkhphbgpggdiikppg | DuckDuckGo Privacy Essentials
+5000000   | iinblfpbdoplpbdkepibimlgabgkaika | Video Speed Pro
+5000000   | mmioliijnhnoblpgimnlajmefafdfilb | Shazam: Find song names from your browser
+5000000   | cbfimnpbnbgjbpcnaablibnekhfghbac | Supreme Copy
+5000000   | caljgklbbfbcjjanaijlacgncafpegll | Avira Password Manager
+5000000   | mkdijghjjdkfpohnmmoicikpkjodcmio | TubeBlock - Adblock for Youtube
+5000000   | aghfnjkcakhmadgdomlmlhhaocbkloab | Just Black
+
+

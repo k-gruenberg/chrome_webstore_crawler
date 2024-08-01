@@ -255,6 +255,7 @@ class ExtensionsCSV:
 	# (7.) bar plot of the {median/average} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are most extensions rarely used?
 	# (8.) bar plot of the {median/average} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are more rarely used extensions more simple/smaller?
 	# (9.) Most common languages as a bar chart.
+	# (10.) Fun fact: Benford's Law (user counts)
 
 	"""
 	A simple example illustrating how to plot a CDF with numpy and plotplot
@@ -456,6 +457,18 @@ class ExtensionsCSV:
 		plt.bar(x=languages[:MAX_NO_OF_BARS], height=[lang_counts[lang] for lang in languages][:MAX_NO_OF_BARS])
 		plt.xlabel(f"{MAX_NO_OF_BARS} most common languages")
 		plt.ylabel(f"No. of extensions")
+		plt.show()
+
+	def plot_benfords_law(self): # (10.)
+		print("(10.) Fun fact: Benford's Law (user counts)")
+		extensions = self.read() # = [ChromeExtension, ChromeExtension, ChromeExtension, ...]
+
+		xs = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+		ys = [len([ext for ext in extensions if str(ext.no_of_users)[0] == digit]) for digit in xs]
+
+		plt.bar(x=xs, height=ys)
+		plt.xlabel("First digit of user count")
+		plt.ylabel("No. of occurrences")
 		plt.show()
 
 
@@ -770,6 +783,7 @@ def main():
 		# (7.) bar plot of the {median/average} user count for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are most extensions rarely used?
 		# (8.) bar plot of the {median/average} extension size for each of the {no_of_quantiles} quantiles of extensions, sorted *by* user count => are more rarely used extensions more simple/smaller?
 		# (9.) Most common languages as a bar chart.
+		# (10.) Fun fact: Benford's Law (user counts)
 		# ##### ##### ##### ##### ##### ##### ##### ##### #####
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
 		print(f"Generating statistics based on {len(extensions_csv.read())} crawled extensions...")
@@ -787,6 +801,7 @@ def main():
 				extensions_csv.plot_bars_quantiles_user_count(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (7.)
 				extensions_csv.plot_bars_quantiles_extension_size(no_of_quantiles=no_of_quantiles, compute_median=compute_median) # (8.)
 		extensions_csv.plot_bars_most_common_languages() # (9.)
+		extensions_csv.plot_benfords_law() # (10.)
 
 	elif args.download_crxs:
 		# Download the .CRX file for all extensions *ALREADY* listed in the (extensions).csv file:

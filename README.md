@@ -161,3 +161,9 @@ No. users | Extension ID                     | Name
 Together, these `69` extensions add up to a total of `932,000,000` (fictional) users; or `42.97%` of the total (fictional) user count of `2,168,731,095`.
 
 All `411` extensions with `>=1M` users add up to a total of `1,523,000,000` (fictional) users; or `70.23%` of the total (fictional) user count of `2,168,731,095`.
+
+## Fun facts
+
+The user counts obey Benford's law:
+
+![bar plot, showing that the user counts obey Benford's law](plots/BAR_Benfords_Law.png)

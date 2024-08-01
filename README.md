@@ -52,7 +52,7 @@ options:
 From 24 Jul 2024 to 29 Jul 2024, this tool was able to crawl information on a total of `165,083` extensions from the Chrome Web Store.
 ID, name, description, number of users, number of ratings, average rating, version number, size, last update, number of languages and languages for each of them can be found in CSV format in `extensions.csv`.
 
-`57,511` extensions (`34.84%`) had fewer than 10 users; an additional `47,964` extensions (`29.05%`) had fewer than 100 users; and another `33,899` extensions (`20.53%`) had fewer than 1,000 users - making a total of `139,374`, or `84.43%` of all extensions, which have fewer than 1,000 users:
+`57,511` extensions (`34.84%`) had fewer than 10 users; an additional `47,964` extensions (`29.05%`) had fewer than 100 users; and another `33,899` extensions (`20.53%`) had fewer than 1,000 users - making a total of `139,374`, or `84.43%` of all extensions, which have fewer than 1,000 users. There are only `411` extensions (`0.25%`) with at least 1 million users; only `19` extensions (`0.01%`) with at least 10 million users and only `1` extension (`0.0006%`) with at least 100 million users (namely: [Adobe Acrobat](https://chromewebstore.google.com/detail/efaidnbmnnnibpcajpcglclefindmkaj)):
 
 ![PDF bar plot, number of users on x-axis, number of extensions on y-axis](plots/PDF_users.png)
 

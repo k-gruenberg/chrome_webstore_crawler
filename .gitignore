@@ -1,5 +1,6 @@
 .DS_Store
 sitemap.xml
+*.crx
 
 
 # Byte-compiled / optimized / DLL files

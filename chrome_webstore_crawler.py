@@ -158,8 +158,14 @@ class ChromeExtension:
 		else:
 			print(f"Error: failed to extract date of last update for extension with ID {self.extension_id}", file=sys.stderr)
 
-	def download_crx_to(self, crx_dest_folder, user_agent=""): # may throw urllib.error.HTTPError or AttributeError
-		# (ToDo: be able to download .CRXs of lesser known extensions by not using www.crx4chrome.com but instead getting the .CRXs from the store directly somehow...)
+	def download_crx_to(self, crx_dest_folder, user_agent=""): # may throw urllib.error.HTTPError 
+		crx_dest_file = os.path.join(crx_dest_folder, self.extension_id + ".crx")
+		url = f"https://clients2.google.com/service/update2/crx?response=redirect&os=win&arch=x64&os_arch=x86_64&nacl_arch=x86-64&prod=chromiumcrx&prodchannel=beta&prodversion=79.0.3945.53&lang=ru&acceptformat=crx3&x=id%3D{self.extension_id}%26installsource%3Dondemand%26uc"
+		# => see: https://superuser.com/questions/290280/how-to-download-chrome-extensions-for-installing-on-another-computer (comment by https://superuser.com/users/552011/geograph)
+		download_file(file_url=url, destination_file=crx_dest_file, user_agent=user_agent)
+		return crx_dest_file
+
+	def download_crx_to___old(self, crx_dest_folder, user_agent=""): # may throw urllib.error.HTTPError or AttributeError
 		print(f"Downloading .CRX of extension with ID {self.extension_id} into folder '{crx_dest_folder}' ...")
 		
 		# (1.) Visit https://www.crx4chrome.com/extensions/abcdefghijklmnopqrstuvwxyzabcdef/ and download as HTML:
@@ -614,7 +620,7 @@ def main():
 		By default this parameter is set to 0 and therefore has no effect.
 		Default: 0
 		""",
-		metavar='SLEEP_IN_MILLIS')
+		metavar='USER_THRESHOLD')
 
 	parser.add_argument('--sleep',
 		type=int,

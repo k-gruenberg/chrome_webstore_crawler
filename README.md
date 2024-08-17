@@ -162,6 +162,29 @@ Together, these `69` extensions add up to a total of `932,000,000` (fictional) u
 
 All `411` extensions with `>=1M` users add up to a total of `1,523,000,000` (fictional) users; or `70.23%` of the total (fictional) user count of `2,168,731,095`.
 
+## Number of extensions with `>=X` users
+
+| User count   | No. of extensions
+| ------------ | -----------------
+| `>=100M`     |       1
+| `>= 50M`     |       2
+| `>= 10M`     |      19
+| `>=  5M`     |      69
+| `>=  1M`     |     411
+| `>=500K`     |     678
+| `>=100K`     |   1,994
+| `>= 50K`     |   3,173
+| `>= 10K`     |   8,438
+| `>=  5K`     |  12,199
+| `>=  1K`     |  25,709
+| `>=500`      |  34,075
+| `>=100`      |  59,608
+| `>= 50`      |  72,731
+| `>= 10`      | 107,572
+| `>=  5`      | 122,696
+| `>=  1`      | 143,087
+| `>=  0`      | 165,083
+
 ## Fun facts
 
 The user counts obey Benford's law:

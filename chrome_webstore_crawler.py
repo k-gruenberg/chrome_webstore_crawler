@@ -554,7 +554,7 @@ def main():
 		In this mode, there won't be any crawling of *new* extensions.
 		Instead, the .CRX file will be downloaded for every extension listed in the .CSV file.
 		Note that this requires also specifying the destination folder for the .CRX files using the --crx-download parameter.
-		If you only want to download the .CRX files of extensions with a certain number of users, use the --crx-download-user-threshold argument for that.
+		If you only want to download the .CRX files of extensions with a certain number of users, use the --crx-download-user-threshold-min/-max arguments for that.
 		""")
 	group1.add_argument('--random-subset', action='store_true',
 		help="""
@@ -611,16 +611,27 @@ def main():
 		""",
 		metavar='FOLDER_PATH')
 
-	parser.add_argument('--crx-download-user-threshold',
+	parser.add_argument('--crx-download-user-threshold-min',
 		type=int,
 		default=0,
 		help="""
-		Only download extensions with more than X users.
+		Only download extensions with *more* than (or exactly) X users.
 		This parameter only has an effect if the --crx-download argument is supplied.
 		By default this parameter is set to 0 and therefore has no effect.
 		Default: 0
 		""",
-		metavar='USER_THRESHOLD')
+		metavar='USER_THRESHOLD_MIN')
+
+	parser.add_argument('--crx-download-user-threshold-max',
+		type=int,
+		default=1_000_000_000_000,
+		help="""
+		Only download extensions with *fewer* than (or exactly) X users.
+		This parameter only has an effect if the --crx-download argument is supplied.
+		By default this parameter is set to 1 trillion and therefore has no effect in practice.
+		Default: 1,000,000,000,000 = 10^12 = 1 trillion
+		""",
+		metavar='USER_THRESHOLD_MAX')
 
 	parser.add_argument('--sleep',
 		type=int,
@@ -753,7 +764,11 @@ def main():
 					try:
 						chrome_extension.download_info_from_url(extension_url=extension_url, user_agent=args.user_agent)
 						if args.crx_download != "":
-							if chrome_extension.no_of_users >= args.crx_download_user_threshold:
+							if chrome_extension.no_of_users < args.crx_download_user_threshold_min:
+								print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold_min}).")
+							elif chrome_extension.no_of_users > args.crx_download_user_threshold_max:
+								print(f"Not downloading .CRX of extension with ID {extension_id} as it has too many users ({chrome_extension.no_of_users} > {args.crx_download_user_threshold_max}).")
+							else:
 								try: # Graceful failure if .CRX download fails:
 									crx_file = chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
 									print(f"Download Success: Downloaded extension with ID {chrome_extension.extension_id} to: {crx_file}")
@@ -761,8 +776,6 @@ def main():
 									print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (HTTP error when visiting '{http_err.url}'): {http_err}", file=sys.stderr)
 								except AttributeError as attr_err:
 									print(f"Error: failed to download extension with ID {chrome_extension.extension_id} (parse error): {attr_err}", file=sys.stderr)
-							else:
-								print(f"Not downloading .CRX of extension with ID {extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
 						chrome_extension.add_to_extensions_csv(extensions_csv=extensions_csv)
 					except urllib.error.HTTPError as http_err:
 						if http_err.code in [404, 301]:
@@ -820,8 +833,15 @@ def main():
 			count_download_failed = 0
 			count_download_skipped = 0
 			for chrome_extension in extensions:
-				#print(f"{chrome_extension.no_of_users} ({type(chrome_extension.no_of_users)}) >= {args.crx_download_user_threshold} ({type(args.crx_download_user_threshold)}) ?")
-				if chrome_extension.no_of_users >= args.crx_download_user_threshold:
+				if chrome_extension.no_of_users < args.crx_download_user_threshold_min:
+					print(f"Not downloading .CRX of extension with ID {chrome_extension.extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold_min}).")
+					count_download_skipped += 1
+					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
+				elif chrome_extension.no_of_users > args.crx_download_user_threshold_max:
+					print(f"Not downloading .CRX of extension with ID {chrome_extension.extension_id} as it has too many users ({chrome_extension.no_of_users} > {args.crx_download_user_threshold_max}).")
+					count_download_skipped += 1
+					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
+				else:
 					# Try download (graceful failure):
 					try:
 						crx_file = chrome_extension.download_crx_to(crx_dest_folder=args.crx_download, user_agent=args.user_agent)
@@ -835,12 +855,8 @@ def main():
 						count_download_failed += 1
 					
 					# Sleep:
-					time.sleep(args.sleep / 1000)
-				else:
-					print(f"Not downloading .CRX of extension with ID {chrome_extension.extension_id} as it has too few users ({chrome_extension.no_of_users} < {args.crx_download_user_threshold}).")
-					count_download_skipped += 1
-					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
-			print(f"Finished. Total no. of extensions: {len(extensions)} | Downloaded successfully: {count_download_successful} | Download failed: {count_download_failed} | Ignored (due to low user count): {count_download_skipped}")
+					time.sleep(args.sleep / 1000)			
+			print(f"Finished. Total no. of extensions: {len(extensions)} | Downloaded successfully: {count_download_successful} | Download failed: {count_download_failed} | Ignored (too few/many users): {count_download_skipped}")
 
 	elif args.random_subset:
 		# Take the .CSV file, take a *random* subset of size --subset-size and put that into a *new* .CSV file:

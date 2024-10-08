@@ -662,6 +662,13 @@ def main():
 		""",
 		metavar='SUBSET_SIZE')
 
+	parser.add_argument("--no-re-download", action='store_true',
+		help="""
+		Only has an effect in combination with --download-crxs.
+		No download will be attempted if a file named '{EXTENSION_ID}.crx' already exists in the destination folder
+		specified by --crx-download. Use this flag to continue aborted downloads.
+		""")
+
 	args = parser.parse_args()
 
 	if args.crawl:
@@ -839,6 +846,10 @@ def main():
 					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
 				elif chrome_extension.no_of_users > args.crx_download_user_threshold_max:
 					print(f"Not downloading .CRX of extension with ID {chrome_extension.extension_id} as it has too many users ({chrome_extension.no_of_users} > {args.crx_download_user_threshold_max}).")
+					count_download_skipped += 1
+					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
+				elif args.no_re_download and os.path.isfile(os.path.join(args.crx_download, f"{chrome_extension.extension_id}.crx")) or os.path.isfile(os.path.join(args.crx_download, f"{chrome_extension.extension_id}.CRX")):
+					print(f"Not downloading .CRX of extension with ID {chrome_extension.extension_id} as it appears to have already been downloaded.")
 					count_download_skipped += 1
 					# DO NOT SLEEP WHEN NOT HAVING DOWNLOADED ANYTHING(!!!)
 				else:

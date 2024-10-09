@@ -875,7 +875,8 @@ def main():
 		# Take a *random* subset of size --subset-size of the existing .CSV file:
 		extensions_csv = ExtensionsCSV(args.csv_file) # default: "./extensions.csv"
 		extensions = extensions_csv.read() # If this were [i+1 for i in range(100)] ...
-		extensions_sample = np.random.choice(extensions, size=args.subset_size) # ...then this would be: [67,  3, 47, 94, 30, 42, 23, 13, 72, 88] for args.subset_size=10 for example.
+		extensions_sample = random.sample(extensions, args.subset_size) # ...then this would be: [67,  3, 47, 94, 30, 42, 23, 13, 72, 88] for args.subset_size=10 for example.
+		# => WARNING: np.random.choice() may generate duplicates !!!!! random.sample(), however, does not!
 		
 		# Choose a file name that does not exist yet: (otherwise, ExtensionsCSV(outfile) would be *appending* to an existing file! (as it's supposed to!))
 		outfile = args.csv_file.removesuffix(".csv") + f"_random_sample_{args.subset_size}.csv"

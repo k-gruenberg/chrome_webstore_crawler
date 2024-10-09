@@ -559,7 +559,7 @@ def main():
 	group1.add_argument('--random-subset', action='store_true',
 		help="""
 		In this mode, there won't be any crawling.
-		Instead, the .CRX file given will be used to create a new, smaller .CRX file from a *random* subset of extensions taken from the big, original .CSV file.
+		Instead, the .CSV file given will be used to create a new, smaller .CSV file from a *random* subset of extensions taken from the big, original .CSV file.
 		By default, the size of this random subset will be 100, use the --subset-size parameter to specify something else.
 		""")
 	group1.add_argument('--user-base-representative-subset', action='store_true',

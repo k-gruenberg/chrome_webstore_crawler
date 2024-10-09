@@ -20,7 +20,7 @@ options:
   --download-crxs       In this mode, there won't be any crawling of *new* extensions. Instead, the .CRX file will be downloaded for every extension listed in the .CSV file. Note that this requires
                         also specifying the destination folder for the .CRX files using the --crx-download parameter. If you only want to download the .CRX files of extensions with a certain number
                         of users, use the --crx-download-user-threshold-min/-max arguments for that.
-  --random-subset       In this mode, there won't be any crawling. Instead, the .CRX file given will be used to create a new, smaller .CRX file from a *random* subset of extensions taken from the
+  --random-subset       In this mode, there won't be any crawling. Instead, the .CSV file given will be used to create a new, smaller .CSV file from a *random* subset of extensions taken from the
                         big, original .CSV file. By default, the size of this random subset will be 100, use the --subset-size parameter to specify something else.
   --user-base-representative-subset
                         In this mode, there won't be any crawling. Instead, the .CRX file given will be used to create a new, smaller .CRX file from a *representative* subset of extensions taken
